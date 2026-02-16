@@ -1,0 +1,165 @@
+{
+  "info": {
+    "_postman_id": "73c924c5-0774-49d3-8712-7008b2cad8b8",
+    "name": "Furniture Design API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "http://localhost:3001/api/auth/register",
+          "id": "1de5f34d-5d1c-4531-861d-d5f31c063039",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n     \"email\": \"dinithi@test.com\",\n     \"password\": \"password123\",\n     \"name\": \"Dinithi Wijesinghe\"\n   }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3001",
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "85454031-3b35-432c-a3dc-f4bff3866325"
+    },
+    {
+      "name": "projects",
+      "item": [
+        {
+          "name": "http://localhost:3001/api/projects",
+          "id": "6a03ae78-a3d7-4bc8-8a21-21bd9c453262",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmOWNiNzMzOS1mZDYzLTQzZWEtOTMzZC1kZTg0YWEwY2Q1MjQiLCJpYXQiOjE3NzExNzUzNDEsImV4cCI6MTc3MTc4MDE0MX0.utrr-b4Op4nzfvxyO1b1oz5U9f0C0AOqz6VDXytf3hU",
+                "type": "text",
+                "uuid": "53e79023-207b-4ffc-b5c5-5d4ef3128854"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3001/api/projects",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3001",
+              "path": [
+                "api",
+                "projects"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "48b11b7f-8cf8-423d-b7a3-39f1b939a565"
+    },
+    {
+      "name": "furniture",
+      "item": [
+        {
+          "name": "http://localhost:3001/api/projects/622362e0-d915-4ed8-b2b7-12ce16f33f69",
+          "id": "f12111bb-81c9-424f-b1b4-dd2b56337d0c",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmOWNiNzMzOS1mZDYzLTQzZWEtOTMzZC1kZTg0YWEwY2Q1MjQiLCJpYXQiOjE3NzExNzUzNDEsImV4cCI6MTc3MTc4MDE0MX0.utrr-b4Op4nzfvxyO1b1oz5U9f0C0AOqz6VDXytf3hU",
+                "type": "text",
+                "uuid": "dd59e2e2-51ee-46b4-a0e9-785348fcbd2c"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3001/api/projects/622362e0-d915-4ed8-b2b7-12ce16f33f69",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3001",
+              "path": [
+                "api",
+                "projects",
+                "622362e0-d915-4ed8-b2b7-12ce16f33f69"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "http://localhost:3001/api/projects/622362e0-d915-4ed8-b2b7-12ce16f33f69",
+          "id": "ad9161a4-ed2b-423f-9f62-00553008096e",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmOWNiNzMzOS1mZDYzLTQzZWEtOTMzZC1kZTg0YWEwY2Q1MjQiLCJpYXQiOjE3NzExNzUzNDEsImV4cCI6MTc3MTc4MDE0MX0.utrr-b4Op4nzfvxyO1b1oz5U9f0C0AOqz6VDXytf3hU",
+                "type": "text",
+                "uuid": "867115bf-818c-4cb4-b30d-b5840a5ca539"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n     \"roomConfig\": {\n       \"width\": 5,\n       \"length\": 6,\n       \"wallColor\": \"#E8D5C4\",\n       \"floorColor\": \"#8B7355\"\n     },\n     \"furnitureItems\": [\n       {\n         \"id\": \"item-1\",\n         \"furnitureId\": \"sofa-modern\",\n         \"position\": { \"x\": 2, \"y\": 3, \"z\": 0 },\n         \"rotation\": 90,\n         \"scale\": 1.0,\n         \"color\": \"#2C3E50\"\n       },\n       {\n         \"id\": \"item-2\",\n         \"furnitureId\": \"table-coffee\",\n         \"position\": { \"x\": 3, \"y\": 4, \"z\": 0 },\n         \"rotation\": 0,\n         \"scale\": 1.0,\n         \"color\": \"#8B4513\"\n       }\n     ]\n   }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/projects/622362e0-d915-4ed8-b2b7-12ce16f33f69",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3001",
+              "path": [
+                "api",
+                "projects",
+                "622362e0-d915-4ed8-b2b7-12ce16f33f69"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "91d18763-08b7-405a-9600-00e52fa03cfe"
+    }
+  ]
+}
