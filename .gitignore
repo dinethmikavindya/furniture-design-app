@@ -38,3 +38,24 @@ next-env.d.ts
 .idea/
 *.swp
 *.swo
+
+# Backend specific
+server/node_modules/
+server/.env
+server/*.log
+
+# Frontend node_modules (if not already there)
+node_modules/
+
+# logs 
+Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS files 
+.DS_Store
