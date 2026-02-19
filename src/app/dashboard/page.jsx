@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";          // ← ADDED
+import { useRouter } from "next/navigation";          
 import {
   motion,
   useMotionValue,
   useSpring,
-  AnimatePresence,                                    // ← ADDED
+  AnimatePresence,                                  
 } from "framer-motion";
 
 const NAV = [
-  { icon: "⌂", label: "Home",      path: "/dashboard" },   // ← path ADDED
+  { icon: "⌂", label: "Home",      path: "/dashboard" },  
   { icon: "▦", label: "Projects",  path: "/projects" },
   { icon: "✦", label: "Editor",    path: "/editor" },
   { icon: "⊡", label: "Shop",      path: "/shop" },
@@ -39,11 +39,117 @@ const RECENT = [
   },
 ];
 
+// Replace your existing TEMPLATES array with this one
+// Drop-in replacement — everything else stays the same
+
 const TEMPLATES = [
-  { id: 1, name: "Nordic Living", emoji: "", glow: "rgba(167,139,250,0.5)", bg: "linear-gradient(145deg,#ede9fe,#c4b5fd)" },
-  { id: 2, name: "Cozy Kitchen",  emoji: "",  glow: "rgba(52,211,153,0.45)", bg: "linear-gradient(145deg,#d1fae5,#6ee7b7)" },
-  { id: 3, name: "Zen Bath",      emoji: "",  glow: "rgba(244,114,182,0.45)", bg: "linear-gradient(145deg,#fce7f3,#f9a8d4)" },
+  {
+    id: 1,
+    name: "Nordic Living",
+    glow: "rgba(167,139,250,0.5)",
+    bg: "linear-gradient(145deg,#ede9fe,#c4b5fd)",
+    svg: (
+      <svg viewBox="0 0 64 64" width="54" height="54" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Floor */}
+        <rect x="6" y="44" width="52" height="6" rx="2" fill="rgba(255,255,255,0.5)" />
+        {/* Sofa body */}
+        <rect x="10" y="30" width="44" height="16" rx="5" fill="rgba(255,255,255,0.75)" />
+        {/* Sofa back */}
+        <rect x="10" y="22" width="44" height="11" rx="4" fill="rgba(255,255,255,0.55)" />
+        {/* Left arm */}
+        <rect x="8" y="28" width="7" height="18" rx="3" fill="rgba(255,255,255,0.65)" />
+        {/* Right arm */}
+        <rect x="49" y="28" width="7" height="18" rx="3" fill="rgba(255,255,255,0.65)" />
+        {/* Left leg */}
+        <rect x="13" y="46" width="4" height="5" rx="1.5" fill="rgba(255,255,255,0.5)" />
+        {/* Right leg */}
+        <rect x="47" y="46" width="4" height="5" rx="1.5" fill="rgba(255,255,255,0.5)" />
+        {/* Cushion 1 */}
+        <rect x="13" y="31" width="17" height="10" rx="3" fill="rgba(167,139,250,0.45)" />
+        {/* Cushion 2 */}
+        <rect x="34" y="31" width="17" height="10" rx="3" fill="rgba(167,139,250,0.45)" />
+        {/* Side table */}
+        <rect x="2" y="36" width="8" height="8" rx="2" fill="rgba(255,255,255,0.45)" />
+        {/* Lamp */}
+        <rect x="4" y="28" width="4" height="8" rx="1" fill="rgba(255,255,255,0.4)" />
+        <ellipse cx="6" cy="27" rx="5" ry="3" fill="rgba(255,255,255,0.5)" />
+      </svg>
+    ),
+  },
+  {
+    id: 2,
+    name: "Cozy Kitchen",
+    glow: "rgba(52,211,153,0.45)",
+    bg: "linear-gradient(145deg,#d1fae5,#6ee7b7)",
+    svg: (
+      <svg viewBox="0 0 64 64" width="54" height="54" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Counter top */}
+        <rect x="4" y="34" width="56" height="5" rx="2" fill="rgba(255,255,255,0.65)" />
+        {/* Counter body */}
+        <rect x="4" y="39" width="56" height="14" rx="2" fill="rgba(255,255,255,0.45)" />
+        {/* Cabinet left */}
+        <rect x="4" y="10" width="24" height="20" rx="3" fill="rgba(255,255,255,0.55)" />
+        {/* Cabinet right */}
+        <rect x="32" y="10" width="28" height="20" rx="3" fill="rgba(255,255,255,0.55)" />
+        {/* Cabinet handles */}
+        <rect x="14" y="19" width="6" height="2" rx="1" fill="rgba(52,211,153,0.7)" />
+        <rect x="40" y="19" width="6" height="2" rx="1" fill="rgba(52,211,153,0.7)" />
+        {/* Sink */}
+        <rect x="8" y="36" width="18" height="2" rx="1" fill="rgba(52,211,153,0.5)" />
+        {/* Tap */}
+        <rect x="15" y="31" width="2" height="5" rx="1" fill="rgba(255,255,255,0.7)" />
+        <rect x="12" y="31" width="8" height="2" rx="1" fill="rgba(255,255,255,0.7)" />
+        {/* Hob / stove burners */}
+        <circle cx="38" cy="37" r="3" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
+        <circle cx="48" cy="37" r="3" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
+        <circle cx="38" cy="44" r="2" stroke="rgba(255,255,255,0.6)" strokeWidth="1.2" />
+        <circle cx="48" cy="44" r="2" stroke="rgba(255,255,255,0.6)" strokeWidth="1.2" />
+        {/* Pot */}
+        <rect x="34" y="29" width="10" height="5" rx="2" fill="rgba(255,255,255,0.5)" />
+        <rect x="32" y="30" width="3" height="2" rx="1" fill="rgba(255,255,255,0.5)" />
+      </svg>
+    ),
+  },
+  {
+    id: 3,
+    name: "Zen Bath",
+    glow: "rgba(244,114,182,0.45)",
+    bg: "linear-gradient(145deg,#fce7f3,#f9a8d4)",
+    svg: (
+      <svg viewBox="0 0 64 64" width="54" height="54" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Bath tub outer */}
+        <rect x="6" y="22" width="52" height="28" rx="10" fill="rgba(255,255,255,0.60)" />
+        {/* Bath tub inner (water) */}
+        <rect x="11" y="27" width="42" height="20" rx="7" fill="rgba(244,114,182,0.25)" />
+        {/* Water shimmer lines */}
+        <line x1="16" y1="34" x2="26" y2="34" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="30" y1="38" x2="42" y2="38" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="18" y1="41" x2="28" y2="41" stroke="rgba(255,255,255,0.5)" strokeWidth="1" strokeLinecap="round" />
+        {/* Tap */}
+        <rect x="27" y="14" width="10" height="10" rx="3" fill="rgba(255,255,255,0.65)" />
+        <rect x="30" y="10" width="4" height="6" rx="2" fill="rgba(255,255,255,0.55)" />
+        {/* Left handle */}
+        <rect x="20" y="15" width="8" height="3" rx="1.5" fill="rgba(255,255,255,0.6)" />
+        {/* Right handle */}
+        <rect x="36" y="15" width="8" height="3" rx="1.5" fill="rgba(255,255,255,0.6)" />
+        {/* Drain */}
+        <circle cx="32" cy="46" r="2.5" fill="rgba(244,114,182,0.4)" />
+        <circle cx="32" cy="46" r="1" fill="rgba(255,255,255,0.6)" />
+        {/* Left foot */}
+        <rect x="10" y="48" width="5" height="4" rx="2" fill="rgba(255,255,255,0.5)" />
+        {/* Right foot */}
+        <rect x="49" y="48" width="5" height="4" rx="2" fill="rgba(255,255,255,0.5)" />
+        {/* Candle left */}
+        <rect x="3" y="34" width="3" height="7" rx="1" fill="rgba(255,255,255,0.55)" />
+        <ellipse cx="4.5" cy="33" rx="1.5" ry="2" fill="rgba(251,191,36,0.7)" />
+        {/* Candle right */}
+        <rect x="58" y="34" width="3" height="7" rx="1" fill="rgba(255,255,255,0.55)" />
+        <ellipse cx="59.5" cy="33" rx="1.5" ry="2" fill="rgba(251,191,36,0.7)" />
+      </svg>
+    ),
+  },
 ];
+
 
 const TIPS = [
   { icon: "", title: "Lighting Basics",  desc: "Layer ambient, task & accent lighting for depth.", glow: "rgba(167,139,250,0.35)", col: "#ede7f6" },
@@ -51,7 +157,7 @@ const TIPS = [
   { icon: "", title: "Space Planning",   desc: "Video: optimising flow in small spaces.",           glow: "rgba(251,191,36,0.35)", col: "#fef9c3" },
 ];
 
-/* ── SVG Filters ── */
+
 function GlassFilter() {
   return (
     <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden>
@@ -89,7 +195,7 @@ function GlassFilter() {
   );
 }
 
-/* ── 3D Tilt hook ── */
+
 function useLiquidGlass(strength = 14) {
   const ref    = useRef(null);
   const rawX   = useMotionValue(0);
@@ -134,7 +240,7 @@ function useLiquidGlass(strength = 14) {
   };
 }
 
-/* ── Glass Edge ── */
+
 function GlassEdge({ hov, radius, filterState, glowColor }) {
   return (
     <>
@@ -305,12 +411,18 @@ function TemplateCard({ t, delay, onNavigate }) {
         style={{ position:"absolute",inset:-1,zIndex:1,borderRadius:25,pointerEvents:"none",
           boxShadow:`inset 0 0 22px ${t.glow}` }} />
       <div style={{ background:t.bg,height:104,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden" }}>
-        <motion.span
-          animate={{ scale:hov?1.22:1, rotate:hov?-8:0 }}
-          transition={{ type:"spring",stiffness:260,damping:18 }}
-          style={{ fontSize:44,display:"block",
-            filter: hov?"drop-shadow(0 8px 18px rgba(0,0,0,0.14))":"drop-shadow(0 2px 6px rgba(0,0,0,0.07))" }}
-        >{t.emoji}</motion.span>
+        <motion.div
+  animate={{ scale: hov ? 1.22 : 1, rotate: hov ? -8 : 0 }}
+  transition={{ type: "spring", stiffness: 260, damping: 18 }}
+  style={{
+    display: "flex", alignItems: "center", justifyContent: "center",
+    filter: hov
+      ? "drop-shadow(0 8px 18px rgba(0,0,0,0.14))"
+      : "drop-shadow(0 2px 6px rgba(0,0,0,0.07))",
+  }}
+>
+  {t.svg}
+</motion.div>
         <motion.div
           animate={{ left: hov?"160%":"-55%" }}
           transition={{ duration:0.65,ease:"easeInOut" }}
