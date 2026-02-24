@@ -22,7 +22,6 @@ export async function GET(request) {
             );
         }
 
-        // Get user settings
         const query = await pool.query(
             'SELECT theme, preferences FROM users WHERE id = $1',
             [userId]
@@ -37,18 +36,11 @@ export async function GET(request) {
 
         const user = query.rows[0];
 
-        // Return all settings with defaults
         return NextResponse.json({
             theme: user.theme || 'light',
-            preferences: {
-                // Grid settings
-                gridEnabled: user.preferences?.gridEnabled ?? true,
-                gridSize: user.preferences?.gridSize || 20,
-                snapToGrid: user.preferences?.snapToGrid ?? false,
-
-                // Measurement settings
-                measurementSystem: user.preferences?.measurementSystem || 'metric',
-                ceilingHeight: user.preferences?.ceilingHeight || 240,
+            preferences: user.preferences || {
+                gridEnabled: true,
+                gridSize: 20
             }
         });
 
@@ -78,25 +70,6 @@ export async function PUT(request) {
             );
         }
 
-        // Validate measurement system
-        if (preferences?.measurementSystem &&
-            !['metric', 'imperial'].includes(preferences.measurementSystem)) {
-            return NextResponse.json(
-                { error: 'Measurement system must be "metric" or "imperial"' },
-                { status: 400 }
-            );
-        }
-
-        // Validate ceiling height
-        if (preferences?.ceilingHeight &&
-            (preferences.ceilingHeight < 200 || preferences.ceilingHeight > 500)) {
-            return NextResponse.json(
-                { error: 'Ceiling height must be between 200 and 500 cm' },
-                { status: 400 }
-            );
-        }
-
-        // Build update query dynamically
         const updates = [];
         const values = [];
         let paramCount = 1;
@@ -120,10 +93,8 @@ export async function PUT(request) {
             );
         }
 
-        // Add userId as last parameter
         values.push(userId);
 
-        // Execute update
         const query = `
       UPDATE users 
       SET ${updates.join(', ')}, updated_at = NOW()
