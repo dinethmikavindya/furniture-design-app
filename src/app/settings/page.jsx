@@ -1,20 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 
-const NAV = [
-    { icon: "⌂", label: "Home", path: "/dashboard" },
-    { icon: "▦", label: "Projects", path: "/projects" },
-    { icon: "✦", label: "Editor", path: "/editor" },
-    { icon: "◈", label: "Materials", path: "/materials" },
-    { icon: "⚙", label: "Settings", path: "/settings" },
-    { icon: "⊡", label: "Shop", path: "/shop" },
-    { icon: "⊙", label: "Account", path: "/account" },
-];
-
-// Liquid glass hook
+// Liquid glass hook (3D tilt effect)
 function useLiquidGlass(strength = 10) {
     const ref = useRef(null);
     const rawX = useMotionValue(0);
@@ -52,7 +41,7 @@ function useLiquidGlass(strength = 10) {
     };
 }
 
-// Glass edge
+// Glass edge component
 function GlassEdge({ hov, radius, glowColor }) {
     return (
         <>
@@ -83,162 +72,22 @@ function GlassEdge({ hov, radius, glowColor }) {
     );
 }
 
-// Glass Nav Item
-function GlassNavItem({ item, isActive, onClick, index }) {
-    const [hov, setHov] = useState(false);
-
-    return (
-        <motion.button
-            onClick={onClick}
-            onMouseEnter={() => setHov(true)}
-            onMouseLeave={() => setHov(false)}
-            initial={{ x: -22, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: index * 0.06 + 0.15, type: "spring", stiffness: 130, damping: 18 }}
-            whileHover={{ x: 5, scale: 1.03 }}
-            whileTap={{ x: 2, scale: 0.95 }}
-            style={{
-                display: "flex", alignItems: "center", gap: 11,
-                padding: "11px 16px", borderRadius: 50, border: "none",
-                cursor: "pointer", textAlign: "left",
-                fontFamily: "'Afacad',sans-serif", fontSize: 14,
-                fontWeight: isActive ? 700 : 500,
-                color: isActive ? "#4c1d95" : "#6b5b95",
-                background: isActive
-                    ? "rgba(255,255,255,0.42)"
-                    : hov ? "rgba(255,255,255,0.24)" : "transparent",
-                backdropFilter: isActive || hov ? "blur(28px) saturate(180%)" : "none",
-                WebkitBackdropFilter: isActive || hov ? "blur(28px) saturate(180%)" : "none",
-                boxShadow: isActive
-                    ? "0 4px 22px rgba(139,92,246,0.12), 0 0 0 0.5px rgba(255,255,255,0.45), inset 0 1px 8px rgba(255,255,255,0.30)"
-                    : hov
-                        ? "0 2px 16px rgba(139,92,246,0.06), 0 0 0 0.5px rgba(255,255,255,0.30)"
-                        : "none",
-                transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
-                position: "relative", overflow: "hidden",
-            }}
-        >
-            <span style={{ fontSize: 17 }}>{item.icon}</span>
-            <span>{item.label}</span>
-        </motion.button>
-    );
-}
-
-// Glass User Card
-function GlassUserCard({ onNavigate }) {
-    const [hov, setHov] = useState(false);
-    return (
-        <motion.div
-            onMouseEnter={() => setHov(true)}
-            onMouseLeave={() => setHov(false)}
-            onClick={() => onNavigate("/account")}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            style={{
-                margin: "12px 12px 0", padding: "13px 14px", borderRadius: 50,
-                background: hov ? "rgba(255,255,255,0.42)" : "rgba(255,255,255,0.28)",
-                backdropFilter: "blur(28px) saturate(180%)",
-                WebkitBackdropFilter: "blur(28px) saturate(180%)",
-                boxShadow: hov
-                    ? "0 12px 36px rgba(120,80,220,0.10), 0 0 0 0.5px rgba(255,255,255,0.45)"
-                    : "0 8px 28px rgba(120,80,220,0.05), 0 0 0 0.5px rgba(255,255,255,0.25)",
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                cursor: "pointer", transition: "all 0.3s ease",
-            }}
-        >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{
-                    width: 36, height: 36, borderRadius: "50%",
-                    background: "linear-gradient(135deg,#8b5cf6,#6d28d9)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "#fff", fontSize: 12, fontWeight: 700,
-                    boxShadow: "0 4px 16px rgba(109,40,217,0.35)",
-                }}>AL</div>
-                <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1f4e" }}>Alex L.</div>
-                    <div style={{
-                        fontSize: 10, fontWeight: 700,
-                        background: "linear-gradient(90deg,#8b5cf6,#60a5fa)",
-                        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                    }}>Pro Plan ✦</div>
-                </div>
-            </div>
-            <span style={{ fontSize: 16, color: "#9b93b8" }}>→</span>
-        </motion.div>
-    );
-}
-
-// Glass Sidebar
-function GlassSidebar({ active, setActive, onNavigate }) {
-    const [hov, setHov] = useState(false);
-    return (
-        <motion.aside
-            onMouseEnter={() => setHov(true)}
-            onMouseLeave={() => setHov(false)}
-            initial={{ x: -44, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.75, type: "spring", stiffness: 90, damping: 18 }}
-            style={{
-                width: 225, minWidth: 225, zIndex: 20, position: "relative",
-                display: "flex", flexDirection: "column", padding: "28px 0 20px",
-                margin: "14px 0 14px 14px", borderRadius: 32,
-                background: hov ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.20)",
-                backdropFilter: "blur(48px) saturate(220%) brightness(1.06)",
-                WebkitBackdropFilter: "blur(48px) saturate(220%) brightness(1.06)",
-                boxShadow: hov
-                    ? `0 20px 60px rgba(120,80,220,0.10), 0 0 0 0.5px rgba(255,255,255,0.35)`
-                    : `0 12px 52px rgba(120,80,220,0.06), 0 0 0 0.5px rgba(255,255,255,0.22)`,
-                transition: "all 0.35s ease",
-            }}
-        >
-            <div style={{ padding: "0 24px 34px" }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: "#2d1f4e" }}>
-                    Mauve Studio
-                </span>
-                <span style={{
-                    fontSize: 22, fontWeight: 700,
-                    background: "linear-gradient(90deg,#8b5cf6,#60a5fa,#ec4899)",
-                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                }}>.</span>
-            </div>
-
-            <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3, padding: "0 10px" }}>
-                {NAV.map((item, i) => (
-                    <GlassNavItem
-                        key={item.label}
-                        item={item}
-                        isActive={active === item.label}
-                        onClick={() => onNavigate(item.path)}
-                        index={i}
-                    />
-                ))}
-            </nav>
-
-            <GlassUserCard onNavigate={onNavigate} />
-        </motion.aside>
-    );
-}
-
 // Main Settings Page
 export default function SettingsPage() {
-    const router = useRouter();
-    const [active, setActive] = useState("Settings");
     const [theme, setTheme] = useState("light");
     const [gridEnabled, setGridEnabled] = useState(true);
     const [gridSize, setGridSize] = useState(20);
+    const [snapToGrid, setSnapToGrid] = useState(false);
+    const [measurementSystem, setMeasurementSystem] = useState("metric");
+    const [ceilingHeight, setCeilingHeight] = useState(240);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState("");
 
     const userId = "f9cb7339-fd63-43ea-933d-de84aa0cd524";
 
+    const unitsCard = useLiquidGlass(8);
     const editorCard = useLiquidGlass(8);
     const interfaceCard = useLiquidGlass(8);
-
-    const onNavigate = (path) => {
-        const label = NAV.find(n => n.path === path)?.label || "Home";
-        setActive(label);
-        router.push(path);
-    };
 
     useEffect(() => {
         loadSettings();
@@ -252,6 +101,9 @@ export default function SettingsPage() {
             setTheme(data.theme || "light");
             setGridEnabled(data.preferences?.gridEnabled ?? true);
             setGridSize(data.preferences?.gridSize || 20);
+            setSnapToGrid(data.preferences?.snapToGrid ?? false);
+            setMeasurementSystem(data.preferences?.measurementSystem || "metric");
+            setCeilingHeight(data.preferences?.ceilingHeight || 240);
 
             document.documentElement.setAttribute("data-theme", data.theme || "light");
         } catch (error) {
@@ -289,7 +141,13 @@ export default function SettingsPage() {
                 body: JSON.stringify({
                     userId,
                     theme,
-                    preferences: { gridEnabled, gridSize },
+                    preferences: {
+                        gridEnabled,
+                        gridSize,
+                        snapToGrid,
+                        measurementSystem,
+                        ceilingHeight
+                    },
                 }),
             });
 
@@ -313,77 +171,74 @@ export default function SettingsPage() {
     const css = `
     @import url('https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400;0,500;0,600;0,700&display=swap');
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
-    @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(14px)}}
+    @keyframes shimmer{0%{background-position:-300% center}100%{background-position:300% center}}
+    @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+    @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(18px)}}
+    :root {
+      --bg-gradient: linear-gradient(135deg,#f0eaff 0%,#e8f4ff 50%,#f0e8ff 100%);
+      --text-primary: #1e1040;
+      --text-secondary: #9b93b8;
+      --accent: #8b5cf6;
+    }
+    [data-theme="dark"] {
+      --bg-gradient: linear-gradient(135deg,#1a0f2e 0%,#0f1419 50%,#1a0f2e 100%);
+      --text-primary: #e8e0ff;
+      --text-secondary: #a99bc8;
+      --accent: #a78bfa;
+    }
   `;
 
     return (
         <div style={{
-            display: "flex",
-            height: "100vh",
+            minHeight: "100vh",
             fontFamily: "'Afacad','Helvetica Neue',sans-serif",
-            background: "linear-gradient(135deg,#f0eaff 0%,#e8f4ff 50%,#f0e8ff 100%)",
-            overflow: "hidden",
+            background: "var(--bg-gradient)",
+            padding: "40px 20px",
             position: "relative",
+            overflow: "hidden",
+            transition: "background 0.5s ease",
         }}>
             <style dangerouslySetInnerHTML={{ __html: css }} />
 
             {/* Background orbs */}
             <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
                 <div style={{
-                    position: "absolute", top: "-10%", right: "-5%", width: 380, height: 380, borderRadius: "50%",
-                    background: "radial-gradient(circle,rgba(167,139,250,0.22) 0%,transparent 70%)",
-                    animation: "floatA 9s ease-in-out infinite",
+                    position: "absolute", top: "-10%", right: "-5%", width: 400, height: 400, borderRadius: "50%",
+                    background: "radial-gradient(circle,rgba(167,139,250,0.25) 0%,transparent 70%)",
+                    animation: "floatA 10s ease-in-out infinite",
                 }} />
                 <div style={{
-                    position: "absolute", bottom: "-8%", left: "-6%", width: 320, height: 320, borderRadius: "50%",
-                    background: "radial-gradient(circle,rgba(96,165,250,0.18) 0%,transparent 70%)",
-                    animation: "floatB 11s ease-in-out infinite",
+                    position: "absolute", bottom: "-8%", left: "-6%", width: 350, height: 350, borderRadius: "50%",
+                    background: "radial-gradient(circle,rgba(96,165,250,0.20) 0%,transparent 70%)",
+                    animation: "floatB 12s ease-in-out infinite",
                 }} />
             </div>
 
-            <GlassSidebar active={active} setActive={setActive} onNavigate={onNavigate} />
-
-            <motion.main
-                initial={{ y: -22, opacity: 0 }}
+            <motion.div
+                initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.65, delay: 0.1 }}
-                style={{
-                    flex: 1,
-                    overflowY: "auto",
-                    padding: "14px 28px 28px 18px",
-                    position: "relative",
-                    zIndex: 10,
-                }}
+                transition={{ duration: 0.6, type: "spring" }}
+                style={{ maxWidth: "700px", margin: "0 auto", position: "relative", zIndex: 10 }}
             >
                 {/* Header */}
-                <motion.div
-                    initial={{ y: -16, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.15, duration: 0.5 }}
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        marginBottom: 32,
-                        padding: "24px 28px 24px 8px",
-                    }}
-                >
+                <div style={{ marginBottom: 40, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
                         <h1 style={{
                             fontSize: 36,
                             fontWeight: 700,
-                            color: "#1e1040",
-                            lineHeight: 1.2,
-                            marginBottom: 7,
+                            color: "var(--text-primary)",
+                            marginBottom: 8,
                         }}>
-                            Settings
+                            Settings{" "}
+                            <span style={{
+                                background: "linear-gradient(90deg,#8b5cf6,#ec4899,#60a5fa)",
+                                backgroundSize: "200% auto",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
+                                animation: "shimmer 3s linear infinite",
+                            }}>✦</span>
                         </h1>
-                        <p style={{
-                            color: "#9b93b8",
-                            fontSize: 14,
-                            fontWeight: 500,
-                        }}>
+                        <p style={{ color: "var(--text-secondary)", fontSize: 14, fontWeight: 500 }}>
                             Customise your workspace preferences.
                         </p>
                     </div>
@@ -393,33 +248,36 @@ export default function SettingsPage() {
                         onClick={saveSettings}
                         disabled={saving}
                         whileHover={!saving ? { scale: 1.05, y: -2 } : {}}
-                        whileTap={!saving ? { scale: 0.93 } : {}}
+                        whileTap={!saving ? { scale: 0.95 } : {}}
                         style={{
-                            padding: "11px 26px",
+                            padding: "13px 32px",
                             borderRadius: 50,
                             border: "none",
                             fontFamily: "'Afacad',sans-serif",
-                            fontSize: 13,
+                            fontSize: 14,
                             fontWeight: 700,
                             cursor: saving ? "not-allowed" : "pointer",
                             color: "#fff",
                             background: saving
-                                ? "rgba(200,200,200,0.4)"
+                                ? "rgba(200,200,200,0.3)"
                                 : "linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%)",
-                            backdropFilter: "blur(28px)",
+                            backdropFilter: "blur(28px) saturate(180%)",
+                            WebkitBackdropFilter: "blur(28px) saturate(180%)",
                             boxShadow: saving
                                 ? "none"
-                                : "0 8px 28px rgba(109,40,217,0.35), inset 0 1px 6px rgba(255,255,255,0.12)",
+                                : "0 12px 36px rgba(109,40,217,0.45), inset 0 1px 10px rgba(255,255,255,0.20)",
+                            position: "relative",
+                            overflow: "hidden",
+                            transition: "all 0.3s cubic-bezier(0.22,1,0.36,1)",
                             display: "flex",
                             alignItems: "center",
-                            gap: 7,
-                            marginTop: 6,
+                            gap: 8,
                         }}
                     >
-                        <span>💾</span>
+                        <span></span>
                         {saving ? "Saving..." : "Save Changes"}
                     </motion.button>
-                </motion.div>
+                </div>
 
                 {/* Message */}
                 {message && (
@@ -430,7 +288,6 @@ export default function SettingsPage() {
                         style={{
                             padding: "12px 20px",
                             marginBottom: 24,
-                            marginLeft: 8,
                             background: message.includes("❌") ? "rgba(255,100,100,0.15)" : "rgba(139,92,246,0.15)",
                             backdropFilter: "blur(20px)",
                             border: `1px solid ${message.includes("❌") ? "rgba(255,100,100,0.3)" : "rgba(139,92,246,0.3)"}`,
@@ -444,6 +301,167 @@ export default function SettingsPage() {
                     </motion.div>
                 )}
 
+                {/* Units & Measurements Card */}
+                <motion.div
+                    ref={unitsCard.ref}
+                    {...unitsCard.events}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.1, duration: 0.5 }}
+                    style={{
+                        marginBottom: 24,
+                        padding: "28px 32px",
+                        borderRadius: 26,
+                        background: "rgba(255,255,255,0.22)",
+                        backdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
+                        WebkitBackdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
+                        boxShadow: unitsCard.hov
+                            ? "0 22px 60px rgba(167,139,250,0.20), 0 0 0 0.5px rgba(255,255,255,0.3)"
+                            : "0 8px 28px rgba(120,80,220,0.05), 0 0 0 0.5px rgba(255,255,255,0.18)",
+                        position: "relative",
+                        rotateX: unitsCard.rotateX,
+                        rotateY: unitsCard.rotateY,
+                        scale: unitsCard.springScale,
+                        transformStyle: "preserve-3d",
+                        transformPerspective: 800,
+                        transition: "box-shadow 0.3s cubic-bezier(0.22,1,0.36,1)",
+                    }}
+                >
+                    <GlassEdge hov={unitsCard.hov} radius={26} glowColor="rgba(139,92,246,0.3)" />
+
+                    <h2 style={{
+                        fontSize: 18,
+                        fontWeight: 700,
+                        color: "var(--text-primary)",
+                        marginBottom: 24,
+                        position: "relative",
+                        zIndex: 7,
+                    }}>
+                        Units & Measurements
+                    </h2>
+
+                    {/* Measurement System */}
+                    <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 28,
+                        paddingBottom: 20,
+                        borderBottom: "1px solid rgba(155,147,184,0.15)",
+                        position: "relative",
+                        zIndex: 7,
+                    }}>
+                        <div>
+                            <div style={{ fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
+                                Measurement System
+                            </div>
+                            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                                Choose between Metric and Imperial units
+                            </div>
+                        </div>
+
+                        {/* Metric/Imperial Toggle */}
+                        <div style={{ display: "flex", gap: 8 }}>
+                            <motion.button
+                                onClick={() => setMeasurementSystem("metric")}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                style={{
+                                    padding: "8px 20px",
+                                    borderRadius: 20,
+                                    border: "none",
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    cursor: "pointer",
+                                    background: measurementSystem === "metric" ? "#8b5cf6" : "rgba(255,255,255,0.3)",
+                                    color: measurementSystem === "metric" ? "#fff" : "var(--text-primary)",
+                                    boxShadow: measurementSystem === "metric"
+                                        ? "0 4px 14px rgba(139,92,246,0.35)"
+                                        : "0 2px 8px rgba(0,0,0,0.05)",
+                                    transition: "all 0.3s",
+                                }}
+                            >
+                                Metric (cm)
+                            </motion.button>
+                            <motion.button
+                                onClick={() => setMeasurementSystem("imperial")}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                style={{
+                                    padding: "8px 20px",
+                                    borderRadius: 20,
+                                    border: "none",
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    cursor: "pointer",
+                                    background: measurementSystem === "imperial" ? "#8b5cf6" : "rgba(255,255,255,0.3)",
+                                    color: measurementSystem === "imperial" ? "#fff" : "var(--text-primary)",
+                                    boxShadow: measurementSystem === "imperial"
+                                        ? "0 4px 14px rgba(139,92,246,0.35)"
+                                        : "0 2px 8px rgba(0,0,0,0.05)",
+                                    transition: "all 0.3s",
+                                }}
+                            >
+                                Imperial (ft)
+                            </motion.button>
+                        </div>
+                    </div>
+
+                    {/* Default Ceiling Height */}
+                    <div style={{
+                        position: "relative",
+                        zIndex: 7,
+                    }}>
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginBottom: 12,
+                        }}>
+                            <label style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                                Default Ceiling Height
+                            </label>
+                            <span style={{
+                                fontSize: 16,
+                                fontWeight: 700,
+                                color: "#8b5cf6",
+                            }}>
+                                {ceilingHeight} cm
+                            </span>
+                        </div>
+
+                        <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>
+                            Standard height for new rooms
+                        </div>
+
+                        <input
+                            type="range"
+                            min="200"
+                            max="500"
+                            step="10"
+                            value={ceilingHeight}
+                            onChange={(e) => setCeilingHeight(Number(e.target.value))}
+                            style={{
+                                width: "100%",
+                                height: 8,
+                                borderRadius: 4,
+                                cursor: "pointer",
+                                accentColor: "#8b5cf6",
+                            }}
+                        />
+
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginTop: 8,
+                            fontSize: 12,
+                            color: "var(--text-secondary)",
+                        }}>
+                            <span>Low (200cm)</span>
+                            <span>High (500cm)</span>
+                        </div>
+                    </div>
+                </motion.div>
+
                 {/* Editor Preferences Card */}
                 <motion.div
                     ref={editorCard.ref}
@@ -453,15 +471,14 @@ export default function SettingsPage() {
                     transition={{ delay: 0.2, duration: 0.5 }}
                     style={{
                         marginBottom: 24,
-                        marginLeft: 8,
                         padding: "28px 32px",
-                        borderRadius: 20,
-                        background: "rgba(255,255,255,0.24)",
+                        borderRadius: 26,
+                        background: "rgba(255,255,255,0.22)",
                         backdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
                         WebkitBackdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
                         boxShadow: editorCard.hov
-                            ? "0 20px 50px rgba(120,80,220,0.12), 0 0 0 0.5px rgba(255,255,255,0.35)"
-                            : "0 8px 28px rgba(120,80,220,0.06), 0 0 0 0.5px rgba(255,255,255,0.20)",
+                            ? "0 22px 60px rgba(96,165,250,0.20), 0 0 0 0.5px rgba(255,255,255,0.3)"
+                            : "0 8px 28px rgba(120,80,220,0.05), 0 0 0 0.5px rgba(255,255,255,0.18)",
                         position: "relative",
                         rotateX: editorCard.rotateX,
                         rotateY: editorCard.rotateY,
@@ -471,12 +488,12 @@ export default function SettingsPage() {
                         transition: "box-shadow 0.3s cubic-bezier(0.22,1,0.36,1)",
                     }}
                 >
-                    <GlassEdge hov={editorCard.hov} radius={20} glowColor="rgba(96,165,250,0.25)" />
+                    <GlassEdge hov={editorCard.hov} radius={26} glowColor="rgba(96,165,250,0.3)" />
 
                     <h2 style={{
                         fontSize: 18,
                         fontWeight: 700,
-                        color: "#2d1f4e",
+                        color: "var(--text-primary)",
                         marginBottom: 24,
                         position: "relative",
                         zIndex: 7,
@@ -484,35 +501,26 @@ export default function SettingsPage() {
                         Editor Preferences
                     </h2>
 
-                    {/* Show Grid */}
+                    {/* Show Grid Toggle */}
                     <div style={{
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
+                        marginBottom: 28,
                         paddingBottom: 20,
                         borderBottom: "1px solid rgba(155,147,184,0.15)",
-                        marginBottom: 20,
                         position: "relative",
                         zIndex: 7,
                     }}>
                         <div>
-                            <div style={{
-                                fontSize: 15,
-                                fontWeight: 600,
-                                color: "#2d1f4e",
-                                marginBottom: 4,
-                            }}>
+                            <div style={{ fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                                 Show Grid
                             </div>
-                            <div style={{
-                                fontSize: 13,
-                                color: "#9b93b8",
-                            }}>
+                            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
                                 Display grid lines on the canvas
                             </div>
                         </div>
 
-                        {/* Toggle */}
                         <motion.button
                             onClick={() => setGridEnabled(!gridEnabled)}
                             whileHover={{ scale: 1.05 }}
@@ -547,7 +555,61 @@ export default function SettingsPage() {
                         </motion.button>
                     </div>
 
-                    {/* Grid Size */}
+                    {/* Snap to Grid Toggle */}
+                    <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 28,
+                        paddingBottom: 20,
+                        borderBottom: "1px solid rgba(155,147,184,0.15)",
+                        position: "relative",
+                        zIndex: 7,
+                    }}>
+                        <div>
+                            <div style={{ fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
+                                Snap to Grid
+                            </div>
+                            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                                Automatically align objects to grid points
+                            </div>
+                        </div>
+
+                        <motion.button
+                            onClick={() => setSnapToGrid(!snapToGrid)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            style={{
+                                width: 44,
+                                height: 26,
+                                borderRadius: 13,
+                                border: "none",
+                                backgroundColor: snapToGrid ? "#8b5cf6" : "#e5e5e7",
+                                position: "relative",
+                                cursor: "pointer",
+                                transition: "background-color 0.3s",
+                                boxShadow: snapToGrid
+                                    ? "0 4px 14px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.2)"
+                                    : "0 2px 6px rgba(0,0,0,0.08)",
+                            }}
+                        >
+                            <motion.div
+                                animate={{ left: snapToGrid ? "21px" : "3px" }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: "50%",
+                                    backgroundColor: "#fff",
+                                    position: "absolute",
+                                    top: 3,
+                                    boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                                }}
+                            />
+                        </motion.button>
+                    </div>
+
+                    {/* Grid Size Slider */}
                     <div style={{
                         opacity: gridEnabled ? 1 : 0.4,
                         transition: "opacity 0.3s",
@@ -557,44 +619,22 @@ export default function SettingsPage() {
                         <div style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: 16,
+                            marginBottom: 12,
                         }}>
-                            <div>
-                                <div style={{
-                                    fontSize: 15,
-                                    fontWeight: 600,
-                                    color: "#2d1f4e",
-                                    marginBottom: 4,
-                                }}>
-                                    Grid Size
-                                </div>
-                                <div style={{
-                                    fontSize: 13,
-                                    color: "#9b93b8",
-                                }}>
-                                    Spacing between grid lines
-                                </div>
-                            </div>
-                            <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 10,
+                            <label style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                                Grid Size
+                            </label>
+                            <span style={{
+                                fontSize: 16,
+                                fontWeight: 700,
+                                color: "#8b5cf6",
                             }}>
-                                <span style={{
-                                    fontSize: 18,
-                                    fontWeight: 700,
-                                    color: "#8b5cf6",
-                                }}>
-                                    {gridSize}
-                                </span>
-                                <span style={{
-                                    fontSize: 13,
-                                    color: "#9b93b8",
-                                }}>
-                                    cm
-                                </span>
-                            </div>
+                                {gridSize} cm
+                            </span>
+                        </div>
+
+                        <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>
+                            Spacing between grid lines
                         </div>
 
                         <input
@@ -607,12 +647,23 @@ export default function SettingsPage() {
                             disabled={!gridEnabled}
                             style={{
                                 width: "100%",
-                                height: 6,
-                                borderRadius: 3,
+                                height: 8,
+                                borderRadius: 4,
                                 cursor: gridEnabled ? "pointer" : "not-allowed",
                                 accentColor: "#8b5cf6",
                             }}
                         />
+
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginTop: 8,
+                            fontSize: 12,
+                            color: "var(--text-secondary)",
+                        }}>
+                            <span>Small (10cm)</span>
+                            <span>Large (50cm)</span>
+                        </div>
                     </div>
                 </motion.div>
 
@@ -624,15 +675,14 @@ export default function SettingsPage() {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
                     style={{
-                        marginLeft: 8,
                         padding: "28px 32px",
-                        borderRadius: 20,
-                        background: "rgba(255,255,255,0.24)",
+                        borderRadius: 26,
+                        background: "rgba(255,255,255,0.22)",
                         backdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
                         WebkitBackdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
                         boxShadow: interfaceCard.hov
-                            ? "0 20px 50px rgba(167,139,250,0.12), 0 0 0 0.5px rgba(255,255,255,0.35)"
-                            : "0 8px 28px rgba(120,80,220,0.06), 0 0 0 0.5px rgba(255,255,255,0.20)",
+                            ? "0 22px 60px rgba(167,139,250,0.20), 0 0 0 0.5px rgba(255,255,255,0.3)"
+                            : "0 8px 28px rgba(120,80,220,0.05), 0 0 0 0.5px rgba(255,255,255,0.18)",
                         position: "relative",
                         rotateX: interfaceCard.rotateX,
                         rotateY: interfaceCard.rotateY,
@@ -642,12 +692,12 @@ export default function SettingsPage() {
                         transition: "box-shadow 0.3s cubic-bezier(0.22,1,0.36,1)",
                     }}
                 >
-                    <GlassEdge hov={interfaceCard.hov} radius={20} glowColor="rgba(167,139,250,0.25)" />
+                    <GlassEdge hov={interfaceCard.hov} radius={26} glowColor="rgba(167,139,250,0.3)" />
 
                     <h2 style={{
                         fontSize: 18,
                         fontWeight: 700,
-                        color: "#2d1f4e",
+                        color: "var(--text-primary)",
                         marginBottom: 24,
                         position: "relative",
                         zIndex: 7,
@@ -664,23 +714,14 @@ export default function SettingsPage() {
                         zIndex: 7,
                     }}>
                         <div>
-                            <div style={{
-                                fontSize: 15,
-                                fontWeight: 600,
-                                color: "#2d1f4e",
-                                marginBottom: 4,
-                            }}>
+                            <div style={{ fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                                 Dark Mode
                             </div>
-                            <div style={{
-                                fontSize: 13,
-                                color: "#9b93b8",
-                            }}>
+                            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
                                 Switch to dark appearance
                             </div>
                         </div>
 
-                        {/* Toggle */}
                         <motion.button
                             onClick={handleThemeToggle}
                             whileHover={{ scale: 1.05 }}
@@ -715,7 +756,7 @@ export default function SettingsPage() {
                         </motion.button>
                     </div>
                 </motion.div>
-            </motion.main>
+            </motion.div>
         </div>
     );
 }
