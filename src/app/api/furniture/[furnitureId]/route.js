@@ -12,11 +12,11 @@ const pool = new Pool({
  */
 export async function GET(request, { params }) {
     try {
-        const { id } = params;
+        const { furnitureId } = params;
 
         const query = await pool.query(
             'SELECT * FROM furniture_catalog WHERE id = $1',
-            [id]
+            [furnitureId]
         );
 
         if (query.rows.length === 0) {
