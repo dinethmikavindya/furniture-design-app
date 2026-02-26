@@ -9,6 +9,8 @@ import {
   AnimatePresence,                                  
 } from "framer-motion";
 
+import AnalyticsWidget from '../../components/dashboard/AnalyticsWidget';
+
 const NAV = [
   { icon: "⌂", label: "Home",      path: "/dashboard" },  
   { icon: "▦", label: "Projects",  path: "/projects" },
@@ -722,7 +724,7 @@ function GlassUserCard({ onNavigate }) {                              // ← ADD
 }
 
 /* ══════ GLASS SIDEBAR ══════ */
-function GlassSidebar({ active, setActive, onNavigate }) {           // ← ADDED onNavigate prop
+function GlassSidebar({ active, onNavigate }) {           // ← ADDED onNavigate prop
   const [hov, setHov] = useState(false);
   return (
     <motion.aside
@@ -1171,6 +1173,8 @@ export default function HomeScreen() {
     }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <GlassFilter />
+
+      <AnalyticsWidget />
 
       {/* Background orbs */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>

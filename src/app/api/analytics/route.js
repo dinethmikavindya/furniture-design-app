@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+// This route uses request-specific data and should be handled dynamically
+export const dynamic = 'force-dynamic';
 import pkg from 'pg';
 const { Pool } = pkg;
 
@@ -8,7 +10,9 @@ const pool = new Pool({
 
 export async function GET(request) {
     try {
-        const { searchParams } = new URL(request.url);
+        // Prefer Next.js provided nextUrl when available to avoid direct use of request.url
+        const url = request.nextUrl ?? new URL(request.url);
+        const searchParams = url.searchParams;
         const userId = searchParams.get('userId');
 
         if (!userId) {
@@ -76,7 +80,7 @@ export async function GET(request) {
                 mostUsed: mostUsedFurniture,
             },
             userActivity: {
-                lastActive: new Date(),
+                lastActive: new Date().toISOString(),
                 projectsCreated: totalProjects,
             }
         });
