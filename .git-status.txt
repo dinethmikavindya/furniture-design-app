@@ -1,0 +1,51 @@
+﻿On branch 10952855-SandilS
+Your branch and 'origin/10952855-SandilS' have diverged,
+and have 24 and 1 different commits each, respectively.
+  (use "git pull" if you want to integrate the remote branch with yours)
+
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Changes to be committed:
+	new file:   .eslintrc.json
+	new file:   AUTHENTICATION_SETUP.md
+	modified:   README.md
+	modified:   server/package.json
+	modified:   src/app/api/analytics/route.js
+	modified:   src/app/materials/page.jsx
+	modified:   src/app/settings/page.jsx
+	modified:   src/app/shop/page.jsx
+	modified:   src/components/auth/ForgotPasswordForm.tsx
+	modified:   src/components/auth/LoginForm.tsx
+	modified:   src/components/auth/ResetPasswordForm.tsx
+	modified:   src/components/auth/SignUpForm.tsx
+	new file:   src/components/dashboard/AnalyticsWidget.tsx
+
+Unmerged paths:
+  (use "git add/rm <file>..." as appropriate to mark resolution)
+	both added:      server/database/add-reset-tokens.sql
+	both modified:   server/package-lock.json
+	deleted by us:   server/src/routes/auth.routes.js
+	both added:      src/app/(auth)/forgot-password/page.tsx
+	both added:      src/app/(auth)/login/page.tsx
+	both added:      src/app/(auth)/reset-password/page.tsx
+	both added:      src/app/(auth)/signup/page.tsx
+	both modified:   src/app/account/page.jsx
+	both modified:   src/app/dashboard/page.jsx
+	both modified:   src/app/editor/page.jsx
+	both modified:   src/app/projects/page.jsx
+	both added:      src/context/AuthContext.tsx
+	both added:      src/lib/api.js
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   src/components/auth/ForgotPasswordForm.tsx
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.git-log.txt
+	.git-reflog.txt
+	.git-status.txt
+

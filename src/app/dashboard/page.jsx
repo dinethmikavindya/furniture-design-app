@@ -8,7 +8,6 @@ import {
   useSpring,
   AnimatePresence,
 } from "framer-motion";
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
 
 const NAV = [
@@ -667,8 +666,8 @@ function GlassUserCard({ onNavigate }) {                              // ← ADD
   const { user, logout } = useAuth();                                 // ← ADDED useAuth
   const router = useRouter();                                         // ← ADDED useRouter
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 
@@ -687,8 +686,6 @@ function GlassUserCard({ onNavigate }) {                              // ← ADD
     <motion.div
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      onClick={handleLogout}                          // ← CHANGED onClick to logout
-      title="Logout"
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.97 }}
       style={{
@@ -700,7 +697,7 @@ function GlassUserCard({ onNavigate }) {                              // ← ADD
           ? "0 12px 36px rgba(120,80,220,0.10), 0 0 0 0.5px rgba(255,255,255,0.45), inset 0 1px 8px rgba(255,255,255,0.28)"
           : "0 8px 28px rgba(120,80,220,0.05), 0 0 0 0.5px rgba(255,255,255,0.25), inset 0 1px 4px rgba(255,255,255,0.16)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        cursor: "pointer", position: "relative", overflow: "hidden",
+        cursor: "default", position: "relative", overflow: "hidden",
         transition: "background 0.3s ease, box-shadow 0.35s cubic-bezier(0.22,1,0.36,1)",
       }}
     >
@@ -746,7 +743,10 @@ function GlassUserCard({ onNavigate }) {                              // ← ADD
           }}>Pro Plan ✦</div>
         </div>
       </div>
-      <motion.button whileHover={{ x: 4 }} whileTap={{ x: 1 }}
+      <motion.button
+        onClick={handleLogout}
+        title="Logout"
+        whileHover={{ x: 4 }} whileTap={{ x: 1 }}
         style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#9b93b8", position: "relative", zIndex: 2 }}
       >→</motion.button>
     </motion.div>
@@ -1138,6 +1138,9 @@ function NewSpaceModal({ onClose, onNavigate }) {
 
 /* ══════ WELCOME HEADER ══════ */
 function WelcomeHeader({ onOpenModal }) {                             // ← ADDED onOpenModal prop
+  const { user } = useAuth();
+  const firstName = user?.name ? user.name.split(' ')[0] : 'User';
+
   return (
     <motion.div
       initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
@@ -1155,7 +1158,7 @@ function WelcomeHeader({ onOpenModal }) {                             // ← ADD
             backgroundSize: "300% auto",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             animation: "shimmer 3s linear infinite",
-          }}>Dinithi!</span>
+          }}>{firstName}!</span>
         </h1>
         <p style={{ color: "#9b93b8", fontSize: 14, fontWeight: 500 }}>
           Ready to design your dream space today? ✨

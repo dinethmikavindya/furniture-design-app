@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import { signupUser } from '@/lib/api';
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -17,7 +17,7 @@ export default function SignUpForm() {
   const { signup, isLoading } = useAuth();
   const router = useRouter();
 
-  /* ── ALL ORIGINAL LOGIC — UNTOUCHED ── */
+  /* ΓöÇΓöÇ ALL ORIGINAL LOGIC ΓÇö UNTOUCHED ΓöÇΓöÇ */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
@@ -57,7 +57,7 @@ export default function SignUpForm() {
     }
   };
 
-  /* ── STYLES ── */
+  /* ΓöÇΓöÇ STYLES ΓöÇΓöÇ */
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400;0,500;0,600;0,700&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -138,7 +138,7 @@ export default function SignUpForm() {
     }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
 
-      {/* ── Background orbs ── */}
+      {/* ΓöÇΓöÇ Background orbs ΓöÇΓöÇ */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
         <div style={{
           position: 'absolute', top: '-14%', left: '-10%',
@@ -165,7 +165,7 @@ export default function SignUpForm() {
         }} />
       </div>
 
-      {/* ── Glass card ── */}
+      {/* ΓöÇΓöÇ Glass card ΓöÇΓöÇ */}
       <motion.div
         initial={{ y: 32, opacity: 0, scale: 0.96 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -206,7 +206,7 @@ export default function SignUpForm() {
           pointerEvents: 'none',
         }} />
 
-        {/* ── Logo ── */}
+        {/* ΓöÇΓöÇ Logo ΓöÇΓöÇ */}
         <motion.div
           initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -228,7 +228,7 @@ export default function SignUpForm() {
           </div>
         </motion.div>
 
-        {/* ── Form — ALL ORIGINAL LOGIC KEPT ── */}
+        {/* ΓöÇΓöÇ Form ΓÇö ALL ORIGINAL LOGIC KEPT ΓöÇΓöÇ */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
 
           {fields.map(f => (
@@ -299,16 +299,16 @@ export default function SignUpForm() {
                 borderRadius: '50px 50px 50% 50%', pointerEvents: 'none',
               }} />
               <span style={{ position: 'relative', zIndex: 2 }}>
-                {isLoading ? 'Creating account…' : 'Create Account'}
+                {isLoading ? 'Creating accountΓÇª' : 'Create Account'}
               </span>
               {!isLoading && (
-                <span style={{ position: 'relative', zIndex: 2, fontSize: 18 }}>✦</span>
+                <span style={{ position: 'relative', zIndex: 2, fontSize: 18 }}>Γ£ª</span>
               )}
             </motion.button>
           </motion.div>
         </form>
 
-        {/* ── Link — ORIGINAL href KEPT ── */}
+        {/* ΓöÇΓöÇ Link ΓÇö ORIGINAL href KEPT ΓöÇΓöÇ */}
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}

@@ -1,0 +1,20 @@
+﻿2266fd9 HEAD@{0}: commit: WIP: local changes
+f49e077 HEAD@{1}: reset: moving to HEAD
+f49e077 HEAD@{2}: commit: feat: complete authentication flow, protected routes, and UI fixes
+abd5076 HEAD@{3}: checkout: moving from 10952855-SandilS to 10952855-SandilS
+abd5076 HEAD@{4}: pull origin main: Fast-forward
+93d8951 HEAD@{5}: checkout: moving from main to 10952855-SandilS
+abd5076 HEAD@{6}: pull origin main: Fast-forward
+b40a980 HEAD@{7}: commit (merge): Fixed register route and added auth files
+417a39a HEAD@{8}: commit: Fixed register route to include name field
+3828f90 HEAD@{9}: checkout: moving from 10952855-SandilS to main
+93d8951 HEAD@{10}: reset: moving to origin/main
+612c25b HEAD@{11}: reset: moving to HEAD
+612c25b HEAD@{12}: checkout: moving from main to 10952855-SandilS
+3828f90 HEAD@{13}: reset: moving to HEAD
+3828f90 HEAD@{14}: checkout: moving from main to main
+3828f90 HEAD@{15}: pull origin main: Fast-forward
+69413ca HEAD@{16}: checkout: moving from 10952855-SandilS to main
+612c25b HEAD@{17}: reset: moving to HEAD
+612c25b HEAD@{18}: commit: Added auth routes and API connection
+69413ca HEAD@{19}: reset: moving to HEAD
