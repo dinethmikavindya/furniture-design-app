@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import pkg from 'pg';
+import { verifyToken } from '@/lib/middleware/auth';
+
 const { Pool } = pkg;
 
 const pool = new Pool({
@@ -8,23 +10,22 @@ const pool = new Pool({
 
 /**
  * GET user settings
- * GET /api/settings?userId={id}
+ * GET /api/settings
+ * Requires: Authorization header with Bearer token
  */
 export async function GET(request) {
     try {
-        const { searchParams } = new URL(request.url);
-        const userId = searchParams.get('userId');
-
-        if (!userId) {
+        const auth = verifyToken(request);
+        if (auth.error) {
             return NextResponse.json(
-                { error: 'User ID required' },
-                { status: 400 }
+                { error: auth.error },
+                { status: auth.status }
             );
         }
 
         const query = await pool.query(
             'SELECT theme, preferences FROM users WHERE id = $1',
-            [userId]
+            [auth.userId]
         );
 
         if (query.rows.length === 0) {
@@ -56,19 +57,21 @@ export async function GET(request) {
 /**
  * UPDATE user settings
  * PUT /api/settings
- * Body: { userId, theme?, preferences? }
+ * Body: { theme?, preferences? }
+ * Requires: Authorization header with Bearer token
  */
 export async function PUT(request) {
     try {
-        const body = await request.json();
-        const { userId, theme, preferences } = body;
-
-        if (!userId) {
+        const auth = verifyToken(request);
+        if (auth.error) {
             return NextResponse.json(
-                { error: 'User ID required' },
-                { status: 400 }
+                { error: auth.error },
+                { status: auth.status }
             );
         }
+
+        const body = await request.json();
+        const { theme, preferences } = body;
 
         const updates = [];
         const values = [];
@@ -93,7 +96,7 @@ export async function PUT(request) {
             );
         }
 
-        values.push(userId);
+        values.push(auth.userId);
 
         const query = `
       UPDATE users 

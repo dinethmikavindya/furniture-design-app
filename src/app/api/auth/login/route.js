@@ -27,7 +27,7 @@ export async function POST(request) {
         }
 
         const query = await pool.query(
-            'SELECT id, email, password_hash, theme, preferences FROM users WHERE email = $1',
+            'SELECT id, email, name, password_hash, theme, preferences FROM users WHERE email = $1',
             [email.toLowerCase()]
         );
 
@@ -57,6 +57,7 @@ export async function POST(request) {
             user: {
                 id: user.id,
                 email: user.email,
+                name: user.name,
                 theme: user.theme,
                 preferences: user.preferences
             }
