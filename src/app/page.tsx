@@ -86,7 +86,7 @@ export default function LandingPage() {
     if (user) {
       router.push('/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, router]);
 
   if (false) { // Removed loading check
     return (
