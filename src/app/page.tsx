@@ -8,7 +8,7 @@ import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 // Liquid glass hook
 function useLiquidGlass(strength = 10) {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const rotateX = useSpring(rawY, { stiffness: 80, damping: 12, mass: 0.8 });
@@ -16,7 +16,7 @@ function useLiquidGlass(strength = 10) {
   const springScale = useSpring(1, { stiffness: 200, damping: 14, mass: 0.6 });
   const [hov, setHov] = useState(false);
 
-  const onMove = useCallback((e) => {
+  const onMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = ref.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
@@ -44,7 +44,7 @@ function useLiquidGlass(strength = 10) {
   };
 }
 
-function GlassEdge({ hov, radius }) {
+function GlassEdge({ hov, radius }: { hov: boolean; radius: number }) {
   return (
     <>
       <motion.div
@@ -76,19 +76,19 @@ function GlassEdge({ hov, radius }) {
 
 export default function LandingPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
   const feature1 = useLiquidGlass(8);
   const feature2 = useLiquidGlass(8);
   const feature3 = useLiquidGlass(8);
 
   useEffect(() => {
-    if (user && !loading) {
+    if (user) {
       router.push('/dashboard');
     }
   }, [user, loading, router]);
 
-  if (loading) {
+  if (false) { // Removed loading check
     return (
       <div style={{
         minHeight: '100vh',
@@ -250,16 +250,16 @@ export default function LandingPage() {
             fontWeight: 900,
             letterSpacing: '-0.04em',
             lineHeight: 0.85,
-            
+
             // IMAGE SHOWS THROUGH TEXT
             background: 'url(https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1600&q=80) center/cover',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            
+
             // Text stroke for definition
             WebkitTextStroke: '3px rgba(139,92,246,0.15)',
-            
+
             position: 'relative',
           }}>
             MAUVE
