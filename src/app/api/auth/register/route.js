@@ -41,12 +41,16 @@ export async function POST(request) {
             );
         }
 
+        console.log(`Registration attempt for email: ${email}`);
         const existingUser = await pool.query(
             'SELECT id FROM users WHERE email = $1',
             [email.toLowerCase()]
         );
 
+        console.log(`Existing user count for ${email.toLowerCase()}: ${existingUser.rows.length}`);
+
         if (existingUser.rows.length > 0) {
+            console.log(`Conflict: Email ${email.toLowerCase()} is already in database.`);
             return NextResponse.json(
                 { error: 'Email already registered' },
                 { status: 409 }

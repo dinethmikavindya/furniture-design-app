@@ -1,6 +1,6 @@
 'use client';
+import React from 'react';
 
-import { signupUser } from '@/lib/api';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -40,17 +40,12 @@ export default function SignUpForm() {
     }
 
     try {
-      const data = await signupUser(name, email, password);
-      if (data.success) {
-        await signup(email, password, name);
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setName('');
-        router.push('/dashboard');
-      } else {
-        setError(data.message || 'Signup failed');
-      }
+      await signup(email, password, name);
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setName('');
+      router.push('/dashboard');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Connection failed';
       setError(errorMessage);

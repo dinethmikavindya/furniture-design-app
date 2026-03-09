@@ -20,13 +20,8 @@ export default function LoginForm() {
     e.preventDefault();
     setError('');
     try {
-      const data = await loginUser(email, password);
-      if (data.success) {
-        await login(email, password);
-        router.push('/dashboard');
-      } else {
-        setError(data.message || 'Login failed');
-      }
+      await login(email, password);
+      router.push('/dashboard');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Connection failed';
       setError(errorMessage);

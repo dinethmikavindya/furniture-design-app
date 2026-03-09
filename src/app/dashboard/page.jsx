@@ -667,8 +667,12 @@ function GlassUserCard({ onNavigate }) {                              // ← ADD
   const router = useRouter();                                         // ← ADDED useRouter
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/login');
+    try {
+      await logout();
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const getInitials = (name) => {
