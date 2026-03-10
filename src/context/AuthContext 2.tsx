@@ -11,11 +11,10 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
-  forgotPassword: (email: string) => Promise<{message: string, resetToken?: string}>;
-  logout: () => void;
+  forgotPassword: (email: string) => Promise<{ message: string, resetToken?: string }>;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -35,40 +34,25 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored token on mount
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      setToken(storedToken);
-      // Verify token and get user info
-      fetchUserInfo(storedToken);
-    } else {
-      setIsLoading(false);
-    }
+    // The browser will automatically send the HttpOnly cookie
+    fetchUserInfo();
   }, []);
 
-  const fetchUserInfo = async (authToken: string) => {
+  const fetchUserInfo = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
-      });
+      const response = await fetch('/api/auth/me');
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
       } else {
-        // Token invalid, remove it
-        localStorage.removeItem('authToken');
-        setToken(null);
+        setUser(null);
       }
     } catch (error) {
       console.error('Failed to fetch user info:', error);
-      localStorage.removeItem('authToken');
-      setToken(null);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,9 +75,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(data.error || 'Login failed');
       }
 
-      setToken(data.token);
       setUser(data.user);
-      localStorage.setItem('authToken', data.token);
+      // Backend automatically sets the HttpOnly cookie for subsequent requests
     } catch (error) {
       setIsLoading(false);
       throw error;
@@ -104,7 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,9 +101,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(data.error || 'Signup failed');
       }
 
-      setToken(data.token);
       setUser(data.user);
-      localStorage.setItem('authToken', data.token);
+      // Backend automatically sets the HttpOnly cookie here as well
     } catch (error) {
       setIsLoading(false);
       throw error;
@@ -130,7 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const forgotPassword = async (email: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/forgot-password', {
+      const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,15 +132,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
-    setToken(null);
-    localStorage.removeItem('authToken');
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (error) {
+      console.error('Logout request failed', error);
+    }
   };
 
   const value: AuthContextType = {
     user,
-    token,
     login,
     signup,
     forgotPassword,
