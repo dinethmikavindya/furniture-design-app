@@ -911,52 +911,66 @@ function GlassLink({ children, onClick }) {                           // ← ADD
 }
 
 /* ══════════════════════════════════════════════
-   NEW SPACE MODAL  ← ADDED ENTIRELY NEW COMPONENT
+   NEW SPACE MODAL — saves room config to localStorage
+   then opens the 2D editor with the user's settings
 ══════════════════════════════════════════════ */
 function NewSpaceModal({ onClose, onNavigate }) {
-  const [shape, setShape] = useState("Rectangle");
-  const [width, setWidth] = useState("4.5");
-  const [height, setHeight] = useState("3.2");
-  const [wall, setWall] = useState("Soft White (#FEFEFE)");
-  const [floor, setFloor] = useState("Warm Oak");
+  const [shape,      setShape]      = useState("Rectangle");
+  const [width,      setWidth]      = useState("4.5");
+  const [height,     setHeight]     = useState("3.2");
+  const [wallColor,  setWallColor]  = useState("#fefefe");
+  const [floorColor, setFloorColor] = useState("#c8a97e");
+
+  // Preset swatches so user can pick quickly
+  const WALL_SWATCHES  = ["#fefefe","#f5f0e8","#e8e0f0","#e0f0f0","#f0e8e0","#2d2d3a","#4a3728","#e8d5c0"];
+  const FLOOR_SWATCHES = ["#c8a97e","#e8d5b0","#a07850","#d4c4b0","#5c4a32","#8b7355","#f5f0e8","#3a3028"];
 
   const inputStyle = {
-    width: "100%", padding: "14px 18px",
+    width: "100%", padding: "12px 16px",
     background: "rgba(255,255,255,0.22)",
     backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
     border: "1px solid rgba(255,255,255,0.55)",
-    borderRadius: 16,
+    borderRadius: 14,
     fontFamily: "'Afacad',sans-serif",
     fontSize: 14, fontWeight: 500, color: "#2d1f4e",
     outline: "none",
-    boxShadow: "0 2px 12px rgba(120,80,220,0.06), inset 0 1px 0 rgba(255,255,255,0.8)",
-    transition: "border-color 0.2s, box-shadow 0.2s",
   };
 
   const labelStyle = {
-    fontSize: 12, fontWeight: 600,
-    color: "#9b93b8", marginBottom: 8,
-    letterSpacing: "0.4px", textTransform: "uppercase",
+    fontSize: 12, fontWeight: 600, color: "#9b93b8",
+    marginBottom: 8, letterSpacing: "0.4px", textTransform: "uppercase",
+  };
+
+  const handleCreate = () => {
+    // Build room config from what user typed
+    const roomConfig = {
+      name:       "My Space",
+      width:      parseFloat(width)  || 4.5,
+      height:     parseFloat(height) || 3.2,
+      wallColor:  wallColor,
+      floorColor: floorColor,
+    };
+
+    // Save to localStorage — editor will read this on load
+    localStorage.setItem("mauve_room",      JSON.stringify(roomConfig));
+    localStorage.setItem("mauve_furniture", JSON.stringify([])); // fresh room = no furniture
+
+    onClose();
+    onNavigate("/editor/2d"); // ← correct path
   };
 
   return (
-    /* ── Backdrop: blurred overlay glides in ── */
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, zIndex: 100,
         background: "rgba(100,80,180,0.18)",
-        backdropFilter: "blur(18px)",
-        WebkitBackdropFilter: "blur(18px)",
+        backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}
     >
-      {/* ── Modal panel: glides up from below ── */}
       <motion.div
         initial={{ y: 80, opacity: 0, scale: 0.94 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -964,169 +978,160 @@ function NewSpaceModal({ onClose, onNavigate }) {
         transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.9 }}
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 820, maxWidth: "92vw",
-          borderRadius: 32,
+          width: 820, maxWidth: "92vw", borderRadius: 32,
           background: "rgba(230,220,255,0.55)",
           backdropFilter: "blur(48px) saturate(200%) brightness(1.06)",
-          WebkitBackdropFilter: "blur(48px) saturate(200%) brightness(1.06)",
           border: "1.5px solid rgba(255,255,255,0.72)",
-          boxShadow: "0 40px 100px rgba(109,40,217,0.22), 0 0 0 0.5px rgba(255,255,255,0.4), inset 0 2px 0 rgba(255,255,255,0.85)",
-          overflow: "hidden",
-          position: "relative",
+          boxShadow: "0 40px 100px rgba(109,40,217,0.22), inset 0 2px 0 rgba(255,255,255,0.85)",
+          overflow: "hidden", position: "relative",
         }}
       >
-        {/* Chromatic glass rim on modal */}
-        <div style={{
-          position: "absolute", inset: 0, borderRadius: 32, pointerEvents: "none", zIndex: 10,
-          border: "1.5px solid transparent",
-          backgroundImage: `linear-gradient(135deg,
-            rgba(255,255,255,0.82) 0%, rgba(180,210,255,0.40) 18%,
-            rgba(255,255,255,0.06) 38%, rgba(255,200,240,0.14) 58%,
-            rgba(255,255,255,0.04) 72%, rgba(200,230,255,0.45) 90%,
-            rgba(255,255,255,0.72) 100%)`,
-          backgroundOrigin: "border-box",
-          WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)",
-          WebkitMaskComposite: "destination-out",
-          maskComposite: "exclude",
-        }} />
-
-        {/* Top specular */}
-        <div style={{
-          position: "absolute", top: 0, left: "10%", right: "10%", height: 2,
-          background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent)",
-          pointerEvents: "none", zIndex: 11,
-        }} />
-
         {/* Close button */}
-        <motion.button
-          onClick={onClose}
-          whileHover={{ scale: 1.12, rotate: 90 }}
-          whileTap={{ scale: 0.9 }}
+        <motion.button onClick={onClose}
+          whileHover={{ scale: 1.12, rotate: 90 }} whileTap={{ scale: 0.9 }}
           style={{
             position: "absolute", top: 20, right: 20, zIndex: 20,
             width: 32, height: 32, borderRadius: "50%", border: "none",
-            background: "rgba(255,255,255,0.45)",
-            backdropFilter: "blur(12px)",
+            background: "rgba(255,255,255,0.45)", backdropFilter: "blur(12px)",
             cursor: "pointer", fontSize: 16, color: "#6b5b95",
             display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(255,255,255,0.6)",
-            transition: "background 0.2s",
           }}
         >×</motion.button>
 
-        <div style={{ display: "flex", gap: 0, padding: 0 }}>
-          {/* ── LEFT: Canvas preview ── */}
-          <div style={{ width: 320, padding: "32px 24px 32px 32px", borderRight: "1px solid rgba(255,255,255,0.4)" }}>
+        <div style={{ display: "flex" }}>
+
+          {/* ── LEFT: Live preview of room colours ── */}
+          <div style={{ width: 300, padding: "32px 24px 32px 32px",
+            borderRight: "1px solid rgba(255,255,255,0.4)" }}>
             <div style={{ marginBottom: 6 }}>
               <span style={{ fontSize: 18, fontWeight: 700, color: "#2d1f4e" }}>Mauve Studio</span>
-              <span style={{
-                fontSize: 18, fontWeight: 700,
+              <span style={{ fontSize: 18, fontWeight: 700,
                 background: "linear-gradient(90deg,#8b5cf6,#60a5fa,#ec4899)",
-                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              }}>.</span>
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>.</span>
             </div>
-            <div style={{ fontSize: 14, color: "#8b5cf6", fontWeight: 600, marginBottom: 20 }}>
-              › New Space
+            <div style={{ fontSize: 14, color: "#8b5cf6", fontWeight: 600, marginBottom: 20 }}>› New Space</div>
+
+            {/* Live preview — shows the chosen colours */}
+            <div style={{
+              width: "100%", height: 220, borderRadius: 18, overflow: "hidden",
+              border: "1.5px solid rgba(255,255,255,0.80)",
+              boxShadow: "0 8px 32px rgba(120,80,220,0.10)",
+              position: "relative",
+            }}>
+              {/* Floor */}
+              <div style={{ position:"absolute", inset:0, background: floorColor }} />
+              {/* Grid */}
+              <div style={{
+                position:"absolute", inset:0,
+                backgroundImage: "linear-gradient(rgba(0,0,0,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.06) 1px,transparent 1px)",
+                backgroundSize: "24px 24px",
+              }} />
+              {/* Walls (left + top bar) */}
+              <div style={{ position:"absolute", top:0, left:0, right:0, height:14,
+                background: wallColor, opacity:0.9 }} />
+              <div style={{ position:"absolute", top:0, left:0, bottom:0, width:14,
+                background: wallColor, opacity:0.9 }} />
+              {/* Label */}
+              <div style={{ position:"absolute", bottom:10, left:0, right:0, textAlign:"center",
+                fontSize:11, fontWeight:600, color:"rgba(0,0,0,0.35)" }}>
+                {width} × {height} m
+              </div>
             </div>
 
-            {/* Canvas area */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              style={{
-                width: "100%", height: 260,
-                background: "rgba(255,255,255,0.60)",
-                backdropFilter: "blur(16px)",
-                border: "1.5px solid rgba(255,255,255,0.80)",
-                borderRadius: 18,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "crosshair",
-                boxShadow: "0 8px 32px rgba(120,80,220,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
-                position: "relative", overflow: "hidden",
-              }}
-            >
-              <div style={{
-                position: "absolute", inset: 0,
-                backgroundImage: "linear-gradient(rgba(139,92,246,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.04) 1px,transparent 1px)",
-                backgroundSize: "24px 24px"
-              }} />
-              <div style={{ fontSize: 28, color: "rgba(139,92,246,0.35)", fontWeight: 300 }}>+</div>
-            </motion.div>
+            <div style={{ marginTop:14, fontSize:11, color:"#9b93b8", textAlign:"center" }}>
+              Live preview of your room colours
+            </div>
           </div>
 
-          {/* ── RIGHT: Form fields ── */}
-          <div style={{ flex: 1, padding: "32px 32px 28px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* ── RIGHT: Form ── */}
+          <div style={{ flex:1, padding:"32px 32px 28px 28px",
+            display:"flex", flexDirection:"column", gap:18 }}>
 
-            {/* Space shape */}
+            {/* Shape */}
             <div>
               <div style={labelStyle}>Space shape</div>
-              <select
-                value={shape} onChange={(e) => setShape(e.target.value)}
-                style={{ ...inputStyle, cursor: "pointer", appearance: "none" }}
-              >
+              <select value={shape} onChange={e => setShape(e.target.value)}
+                style={{ ...inputStyle, cursor:"pointer" }}>
                 <option>Rectangle</option>
-                <option>L-Shape</option>
                 <option>Square</option>
                 <option>Open Plan</option>
               </select>
             </div>
 
-            {/* Width + Height */}
-            <div style={{ display: "flex", gap: 14 }}>
-              <div style={{ flex: 1 }}>
-                <div style={labelStyle}>Space width</div>
-                <input
-                  value={`${width} m`}
-                  onChange={(e) => setWidth(e.target.value.replace(" m", ""))}
-                  style={inputStyle}
-                />
+            {/* Width + Height — now plain numbers */}
+            <div style={{ display:"flex", gap:14 }}>
+              <div style={{ flex:1 }}>
+                <div style={labelStyle}>Width (metres)</div>
+                <input type="number" min="1" max="20" step="0.5"
+                  value={width} onChange={e => setWidth(e.target.value)}
+                  style={inputStyle} />
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={labelStyle}>Space height</div>
-                <input
-                  value={`${height} m`}
-                  onChange={(e) => setHeight(e.target.value.replace(" m", ""))}
-                  style={inputStyle}
-                />
+              <div style={{ flex:1 }}>
+                <div style={labelStyle}>Depth (metres)</div>
+                <input type="number" min="1" max="20" step="0.5"
+                  value={height} onChange={e => setHeight(e.target.value)}
+                  style={inputStyle} />
               </div>
             </div>
 
-            {/* Wall colour */}
+            {/* Wall colour — swatches + colour picker */}
             <div>
               <div style={labelStyle}>Wall colour</div>
-              <input value={wall} onChange={(e) => setWall(e.target.value)} style={inputStyle} />
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
+                {WALL_SWATCHES.map(c => (
+                  <button key={c} onClick={() => setWallColor(c)} style={{
+                    width:28, height:28, borderRadius:7, border:"none",
+                    background:c, cursor:"pointer", flexShrink:0,
+                    boxShadow: wallColor===c ? "0 0 0 2.5px #8b5cf6" : "0 1px 4px rgba(0,0,0,0.15)",
+                  }} />
+                ))}
+                <label style={{ cursor:"pointer", fontSize:12, color:"#9b93b8" }} title="Custom colour">
+                  ✎ custom
+                  <input type="color" value={wallColor} onChange={e => setWallColor(e.target.value)}
+                    style={{ marginLeft:6, width:28, height:28, borderRadius:6,
+                      border:"none", cursor:"pointer", padding:0 }} />
+                </label>
+              </div>
             </div>
 
-            {/* Floor colour */}
+            {/* Floor colour — swatches + colour picker */}
             <div>
               <div style={labelStyle}>Floor colour</div>
-              <input value={floor} onChange={(e) => setFloor(e.target.value)} style={inputStyle} />
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
+                {FLOOR_SWATCHES.map(c => (
+                  <button key={c} onClick={() => setFloorColor(c)} style={{
+                    width:28, height:28, borderRadius:7, border:"none",
+                    background:c, cursor:"pointer", flexShrink:0,
+                    boxShadow: floorColor===c ? "0 0 0 2.5px #8b5cf6" : "0 1px 4px rgba(0,0,0,0.15)",
+                  }} />
+                ))}
+                <label style={{ cursor:"pointer", fontSize:12, color:"#9b93b8" }} title="Custom colour">
+                  ✎ custom
+                  <input type="color" value={floorColor} onChange={e => setFloorColor(e.target.value)}
+                    style={{ marginLeft:6, width:28, height:28, borderRadius:6,
+                      border:"none", cursor:"pointer", padding:0 }} />
+                </label>
+              </div>
             </div>
 
-            {/* Create button */}
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+            {/* Create */}
+            <div style={{ display:"flex", justifyContent:"flex-end", marginTop:4 }}>
               <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.94, y: 2 }}
-                onClick={() => { onClose(); onNavigate("/editor"); }}  // ← goes to editor after create
+                whileHover={{ scale:1.05, y:-2 }} whileTap={{ scale:0.94, y:2 }}
+                onClick={handleCreate}
                 style={{
-                  padding: "13px 32px", borderRadius: 50, border: "none",
-                  fontFamily: "'Afacad',sans-serif", fontSize: 14, fontWeight: 700,
-                  color: "#fff", cursor: "pointer",
-                  background: "linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%)",
-                  boxShadow: "0 10px 32px rgba(109,40,217,0.42), inset 0 1px 0 rgba(255,255,255,0.22)",
-                  display: "flex", alignItems: "center", gap: 8,
-                  position: "relative", overflow: "hidden",
+                  padding:"13px 32px", borderRadius:50, border:"none",
+                  fontFamily:"'Afacad',sans-serif", fontSize:14, fontWeight:700,
+                  color:"#fff", cursor:"pointer",
+                  background:"linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%)",
+                  boxShadow:"0 10px 32px rgba(109,40,217,0.42)",
+                  display:"flex", alignItems:"center", gap:8,
                 }}
               >
-                <div style={{
-                  position: "absolute", top: 0, left: "15%", right: "15%", height: "50%",
-                  background: "linear-gradient(180deg, rgba(255,255,255,0.20) 0%, transparent 100%)",
-                  borderRadius: "50px 50px 50% 50%", pointerEvents: "none",
-                }} />
-                <span style={{ fontSize: 18 }}>+</span>
-                <span style={{ position: "relative", zIndex: 2 }}>Create</span>
+                <span style={{ fontSize:18 }}>+</span> Create Space
               </motion.button>
             </div>
+
           </div>
         </div>
       </motion.div>
