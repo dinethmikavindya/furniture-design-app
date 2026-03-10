@@ -12,12 +12,12 @@ const pool = new Pool({
 /**
  * REGISTER new user
  * POST /api/auth/register
- * Body: { email, password }
+ * Body: { email, password, name }
  */
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { email, password } = body;
+        const { email, password, name } = body;
 
         if (!email || !password) {
             return NextResponse.json(
@@ -57,12 +57,13 @@ export async function POST(request) {
         const passwordHash = await bcrypt.hash(password, salt);
 
         const newUser = await pool.query(
-            `INSERT INTO users (email, password_hash, theme, preferences)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, email, theme, preferences`,
+            `INSERT INTO users (email, password_hash, name, theme, preferences)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING id, email, name, theme, preferences`,
             [
                 email.toLowerCase(),
                 passwordHash,
+                name || null,
                 'light',
                 JSON.stringify({
                     gridEnabled: true,
@@ -77,16 +78,29 @@ export async function POST(request) {
         const user = newUser.rows[0];
         const token = generateToken(user.id, user.email);
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             success: true,
-            token,
             user: {
                 id: user.id,
                 email: user.email,
+                name: user.name,
                 theme: user.theme,
                 preferences: user.preferences
             }
         }, { status: 201 });
+
+        // Set HttpOnly Cookie
+        response.cookies.set({
+            name: 'auth_token',
+            value: token,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 7 * 24 * 60 * 60 // 7 days
+        });
+
+        return response;
 
     } catch (error) {
         console.error('Register Error:', error);

@@ -27,7 +27,7 @@ export async function POST(request) {
         }
 
         const query = await pool.query(
-            'SELECT id, email, password_hash, theme, preferences FROM users WHERE email = $1',
+            'SELECT id, email, name, password_hash, theme, preferences FROM users WHERE email = $1',
             [email.toLowerCase()]
         );
 
@@ -51,16 +51,29 @@ export async function POST(request) {
 
         const token = generateToken(user.id, user.email);
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             success: true,
-            token,
             user: {
                 id: user.id,
                 email: user.email,
+                name: user.name,
                 theme: user.theme,
                 preferences: user.preferences
             }
         });
+
+        // Set HttpOnly Cookie
+        response.cookies.set({
+            name: 'auth_token',
+            value: token,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 7 * 24 * 60 * 60 // 7 days
+        });
+
+        return response;
 
     } catch (error) {
         console.error('Login Error:', error);

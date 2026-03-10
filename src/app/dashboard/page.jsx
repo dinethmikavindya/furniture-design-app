@@ -1,21 +1,22 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";          
+import { useRouter } from "next/navigation";
 import {
   motion,
   useMotionValue,
   useSpring,
-  AnimatePresence,                                  
+  AnimatePresence,
 } from "framer-motion";
+import { useAuth } from '@/context/AuthContext';
 
 const NAV = [
-  { icon: "⌂", label: "Home",      path: "/dashboard" },  
-  { icon: "▦", label: "Projects",  path: "/projects" },
-  { icon: "✦", label: "Editor",    path: "/editor" },
-  { icon: "⊡", label: "Shop",      path: "/shop" },
+  { icon: "⌂", label: "Home", path: "/dashboard" },
+  { icon: "▦", label: "Projects", path: "/projects" },
+  { icon: "✦", label: "Editor", path: "/editor" },
+  { icon: "⊡", label: "Shop", path: "/shop" },
   { icon: "◈", label: "Materials", path: "/materials" },
-  { icon: "⚙", label: "Settings",  path: "/settings" },
+  { icon: "⚙", label: "Settings", path: "/settings" },
 ];
 
 const RECENT = [
@@ -152,9 +153,9 @@ const TEMPLATES = [
 
 
 const TIPS = [
-  { icon: "", title: "Lighting Basics",  desc: "Layer ambient, task & accent lighting for depth.", glow: "rgba(167,139,250,0.35)", col: "#ede7f6" },
-  { icon: "", title: "Color Theory",     desc: "Build cohesive palettes from a single anchor hue.", glow: "rgba(52,211,153,0.35)", col: "#d1fae5" },
-  { icon: "", title: "Space Planning",   desc: "Video: optimising flow in small spaces.",           glow: "rgba(251,191,36,0.35)", col: "#fef9c3" },
+  { icon: "", title: "Lighting Basics", desc: "Layer ambient, task & accent lighting for depth.", glow: "rgba(167,139,250,0.35)", col: "#ede7f6" },
+  { icon: "", title: "Color Theory", desc: "Build cohesive palettes from a single anchor hue.", glow: "rgba(52,211,153,0.35)", col: "#d1fae5" },
+  { icon: "", title: "Space Planning", desc: "Video: optimising flow in small spaces.", glow: "rgba(251,191,36,0.35)", col: "#fef9c3" },
 ];
 
 
@@ -197,22 +198,22 @@ function GlassFilter() {
 
 
 function useLiquidGlass(strength = 14) {
-  const ref    = useRef(null);
-  const rawX   = useMotionValue(0);
-  const rawY   = useMotionValue(0);
-  const rotateX    = useSpring(rawY, { stiffness: 80, damping: 12, mass: 0.8 });
-  const rotateY    = useSpring(rawX, { stiffness: 80, damping: 12, mass: 0.8 });
-  const springScale = useSpring(1,  { stiffness: 200, damping: 14, mass: 0.6 });
-  const [hov,   setHov]   = useState(false);
+  const ref = useRef(null);
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const rotateX = useSpring(rawY, { stiffness: 80, damping: 12, mass: 0.8 });
+  const rotateY = useSpring(rawX, { stiffness: 80, damping: 12, mass: 0.8 });
+  const springScale = useSpring(1, { stiffness: 200, damping: 14, mass: 0.6 });
+  const [hov, setHov] = useState(false);
   const [press, setPress] = useState(false);
 
   const onMove = useCallback((e) => {
     const el = ref.current; if (!el) return;
-    const r  = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width  - 0.5;
-    const py = (e.clientY - r.top)  / r.height - 0.5;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
     rawX.set(py * -strength);
-    rawY.set(px *  strength);
+    rawY.set(px * strength);
   }, [rawX, rawY, strength]);
 
   const onEnter = useCallback(() => {
@@ -231,11 +232,11 @@ function useLiquidGlass(strength = 14) {
   return {
     ref, rotateX, rotateY, hov, press, filterState, springScale,
     events: {
-      onMouseMove:  onMove,
+      onMouseMove: onMove,
       onMouseEnter: onEnter,
       onMouseLeave: onLeave,
-      onMouseDown:  () => { setPress(true);  springScale.set(0.97); },
-      onMouseUp:    () => { setPress(false); springScale.set(1.025); },
+      onMouseDown: () => { setPress(true); springScale.set(0.97); },
+      onMouseUp: () => { setPress(false); springScale.set(1.025); },
     },
   };
 }
@@ -318,8 +319,10 @@ function ProjectCard({ p, delay }) {
       <motion.div
         animate={{ opacity: hov ? 1 : 0 }}
         transition={{ duration: 0.35 }}
-        style={{ position: "absolute", inset: -1, zIndex: 2, borderRadius: 27, pointerEvents: "none",
-          boxShadow: `inset 0 0 24px ${p.glow}` }}
+        style={{
+          position: "absolute", inset: -1, zIndex: 2, borderRadius: 27, pointerEvents: "none",
+          boxShadow: `inset 0 0 24px ${p.glow}`
+        }}
       />
       <motion.div
         animate={{ opacity: hov ? 0.5 : 0 }}
@@ -332,50 +335,54 @@ function ProjectCard({ p, delay }) {
       <div style={{ background: p.preview, height: 148, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, filter: "url(#gooey)" }}>
           <motion.div
-            animate={{ x: hov?[0,14,0]:0, y: hov?[0,-12,0]:0, scale: hov?[1,1.13,1]:1 }}
-            transition={{ duration: 2.2, repeat: hov?Infinity:0, ease: "easeInOut" }}
-            style={{ position:"absolute",top:20,left:18,width:90,height:62,background:p.blob1,borderRadius:14,opacity:0.82 }}
+            animate={{ x: hov ? [0, 14, 0] : 0, y: hov ? [0, -12, 0] : 0, scale: hov ? [1, 1.13, 1] : 1 }}
+            transition={{ duration: 2.2, repeat: hov ? Infinity : 0, ease: "easeInOut" }}
+            style={{ position: "absolute", top: 20, left: 18, width: 90, height: 62, background: p.blob1, borderRadius: 14, opacity: 0.82 }}
           />
           <motion.div
-            animate={{ x: hov?[0,-10,0]:0, y: hov?[0,14,0]:0, scale: hov?[1,1.2,1]:1 }}
-            transition={{ duration: 2.6, repeat: hov?Infinity:0, ease: "easeInOut", delay: 0.35 }}
-            style={{ position:"absolute",top:44,left:68,width:62,height:52,background:p.blob2,borderRadius:"50%",opacity:0.62 }}
+            animate={{ x: hov ? [0, -10, 0] : 0, y: hov ? [0, 14, 0] : 0, scale: hov ? [1, 1.2, 1] : 1 }}
+            transition={{ duration: 2.6, repeat: hov ? Infinity : 0, ease: "easeInOut", delay: 0.35 }}
+            style={{ position: "absolute", top: 44, left: 68, width: 62, height: 52, background: p.blob2, borderRadius: "50%", opacity: 0.62 }}
           />
           <motion.div
-            animate={{ scale: hov?[1,1.35,1]:1 }}
-            transition={{ duration: 1.9, repeat: hov?Infinity:0, ease: "easeInOut", delay: 0.6 }}
-            style={{ position:"absolute",bottom:22,right:28,width:30,height:30,background:p.blob1,borderRadius:"50%",opacity:0.5 }}
+            animate={{ scale: hov ? [1, 1.35, 1] : 1 }}
+            transition={{ duration: 1.9, repeat: hov ? Infinity : 0, ease: "easeInOut", delay: 0.6 }}
+            style={{ position: "absolute", bottom: 22, right: 28, width: 30, height: 30, background: p.blob1, borderRadius: "50%", opacity: 0.5 }}
           />
         </div>
         <motion.div
           animate={{ left: hov ? "160%" : "-55%" }}
           transition={{ duration: 0.75, ease: "easeInOut" }}
-          style={{ position:"absolute",top:0,width:"45%",height:"100%",
-            background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent)",pointerEvents:"none" }}
+          style={{
+            position: "absolute", top: 0, width: "45%", height: "100%",
+            background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent)", pointerEvents: "none"
+          }}
         />
-        <div style={{ position:"absolute",inset:0,pointerEvents:"none",
-          background:"linear-gradient(135deg,rgba(255,255,255,0.22) 0%,transparent 55%,rgba(255,255,255,0.06) 100%)" }}/>
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "linear-gradient(135deg,rgba(255,255,255,0.22) 0%,transparent 55%,rgba(255,255,255,0.06) 100%)"
+        }} />
         <motion.div
           animate={{ scale: hov ? 1.06 : 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 18 }}
           style={{
-            position:"absolute",bottom:10,right:12,
-            background:"rgba(255,255,255,0.30)",
-            backdropFilter:"blur(20px) saturate(180%)",
-            WebkitBackdropFilter:"blur(20px) saturate(180%)",
-            padding:"3px 12px",borderRadius:50,
-            fontSize:10,fontWeight:700,color:"#4c1d95",letterSpacing:"0.4px",
-            boxShadow:"0 4px 14px rgba(0,0,0,0.05), 0 0 0 0.5px rgba(255,255,255,0.4), inset 0 1px 4px rgba(255,255,255,0.35)",
+            position: "absolute", bottom: 10, right: 12,
+            background: "rgba(255,255,255,0.30)",
+            backdropFilter: "blur(20px) saturate(180%)",
+            WebkitBackdropFilter: "blur(20px) saturate(180%)",
+            padding: "3px 12px", borderRadius: 50,
+            fontSize: 10, fontWeight: 700, color: "#4c1d95", letterSpacing: "0.4px",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.05), 0 0 0 0.5px rgba(255,255,255,0.4), inset 0 1px 4px rgba(255,255,255,0.35)",
           }}
         >{p.label}</motion.div>
       </div>
       <motion.div
         animate={{ background: hov ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.08)" }}
         transition={{ duration: 0.35 }}
-        style={{ padding:"14px 18px 18px", position: "relative", zIndex: 7 }}
+        style={{ padding: "14px 18px 18px", position: "relative", zIndex: 7 }}
       >
-        <div style={{ fontSize:14,fontWeight:700,color:"#2d1f4e",marginBottom:4 }}>{p.name}</div>
-        <div style={{ fontSize:11,color:"#9b93b8",fontWeight:500 }}>{p.sub}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#2d1f4e", marginBottom: 4 }}>{p.name}</div>
+        <div style={{ fontSize: 11, color: "#9b93b8", fontWeight: 500 }}>{p.sub}</div>
       </motion.div>
     </motion.div>
   );
@@ -391,12 +398,12 @@ function TemplateCard({ t, delay, onNavigate }) {
       onClick={() => onNavigate(`/editor?template=${t.id}`)}
       initial={{ y: 24, opacity: 0, scale: 0.94 }}
       animate={{ y: 0, opacity: 1, scale: 1 }}
-      transition={{ delay: delay/1000, duration: 0.5, type:"spring", stiffness:120, damping:16 }}
+      transition={{ delay: delay / 1000, duration: 0.5, type: "spring", stiffness: 120, damping: 16 }}
       style={{
-        flex:1, minWidth:0, borderRadius:24, overflow:"hidden", cursor:"pointer",
-        position:"relative",
+        flex: 1, minWidth: 0, borderRadius: 24, overflow: "hidden", cursor: "pointer",
+        position: "relative",
         rotateX, rotateY, scale: springScale,
-        transformStyle:"preserve-3d", transformPerspective:800,
+        transformStyle: "preserve-3d", transformPerspective: 800,
         background: "rgba(255,255,255,0.22)",
         backdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
         WebkitBackdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
@@ -407,35 +414,39 @@ function TemplateCard({ t, delay, onNavigate }) {
       }}
     >
       <GlassEdge hov={hov} radius={24} filterState={filterState} glowColor={t.glow} />
-      <motion.div animate={{ opacity: hov?1:0 }} transition={{ duration:0.35 }}
-        style={{ position:"absolute",inset:-1,zIndex:1,borderRadius:25,pointerEvents:"none",
-          boxShadow:`inset 0 0 22px ${t.glow}` }} />
-      <div style={{ background:t.bg,height:104,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden" }}>
+      <motion.div animate={{ opacity: hov ? 1 : 0 }} transition={{ duration: 0.35 }}
+        style={{
+          position: "absolute", inset: -1, zIndex: 1, borderRadius: 25, pointerEvents: "none",
+          boxShadow: `inset 0 0 22px ${t.glow}`
+        }} />
+      <div style={{ background: t.bg, height: 104, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
         <motion.div
-  animate={{ scale: hov ? 1.22 : 1, rotate: hov ? -8 : 0 }}
-  transition={{ type: "spring", stiffness: 260, damping: 18 }}
-  style={{
-    display: "flex", alignItems: "center", justifyContent: "center",
-    filter: hov
-      ? "drop-shadow(0 8px 18px rgba(0,0,0,0.14))"
-      : "drop-shadow(0 2px 6px rgba(0,0,0,0.07))",
-  }}
->
-  {t.svg}
-</motion.div>
+          animate={{ scale: hov ? 1.22 : 1, rotate: hov ? -8 : 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 18 }}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            filter: hov
+              ? "drop-shadow(0 8px 18px rgba(0,0,0,0.14))"
+              : "drop-shadow(0 2px 6px rgba(0,0,0,0.07))",
+          }}
+        >
+          {t.svg}
+        </motion.div>
         <motion.div
-          animate={{ left: hov?"160%":"-55%" }}
-          transition={{ duration:0.65,ease:"easeInOut" }}
-          style={{ position:"absolute",top:0,width:"40%",height:"100%",
-            background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent)",pointerEvents:"none" }}
+          animate={{ left: hov ? "160%" : "-55%" }}
+          transition={{ duration: 0.65, ease: "easeInOut" }}
+          style={{
+            position: "absolute", top: 0, width: "40%", height: "100%",
+            background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent)", pointerEvents: "none"
+          }}
         />
       </div>
       <motion.div
         animate={{ background: hov ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.06)" }}
         transition={{ duration: 0.3 }}
-        style={{ padding:"12px 16px 16px", position: "relative", zIndex: 7 }}
+        style={{ padding: "12px 16px 16px", position: "relative", zIndex: 7 }}
       >
-        <div style={{ fontSize:13,fontWeight:700,color:"#2d1f4e" }}>{t.name}</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1f4e" }}>{t.name}</div>
       </motion.div>
     </motion.div>
   );
@@ -448,43 +459,43 @@ function TipCard({ tip, delay }) {
   return (
     <motion.div
       ref={ref} {...events}
-      initial={{y:18,opacity:0}} animate={{y:0,opacity:1}}
-      transition={{delay:delay/1000,duration:0.5,type:"spring",stiffness:120,damping:16}}
-      whileHover={{y:-6}}
-      whileTap={{scale:0.96,y:-2}}
+      initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: delay / 1000, duration: 0.5, type: "spring", stiffness: 120, damping: 16 }}
+      whileHover={{ y: -6 }}
+      whileTap={{ scale: 0.96, y: -2 }}
       style={{
-        flex:1,minWidth:0,borderRadius:22,padding:"16px 18px",
-        display:"flex",alignItems:"flex-start",gap:14,cursor:"pointer",
-        position:"relative",
+        flex: 1, minWidth: 0, borderRadius: 22, padding: "16px 18px",
+        display: "flex", alignItems: "flex-start", gap: 14, cursor: "pointer",
+        position: "relative",
         rotateX, rotateY, scale: springScale,
-        transformStyle:"preserve-3d", transformPerspective:700,
+        transformStyle: "preserve-3d", transformPerspective: 700,
         background: "rgba(255,255,255,0.22)",
         backdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
         WebkitBackdropFilter: "blur(32px) saturate(200%) brightness(1.08)",
         boxShadow: hov
           ? `0 18px 50px ${tip.glow},0 4px 20px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(255,255,255,0.3)`
           : `0 6px 22px rgba(120,80,220,0.04),0 2px 8px rgba(0,0,0,0.02), 0 0 0 0.5px rgba(255,255,255,0.18)`,
-        transition:"box-shadow 0.3s cubic-bezier(0.22,1,0.36,1)",
+        transition: "box-shadow 0.3s cubic-bezier(0.22,1,0.36,1)",
       }}
     >
       <GlassEdge hov={hov} radius={22} filterState={filterState} glowColor={tip.glow} />
       <motion.div
-        animate={{ rotate:hov?-12:0, scale:hov?1.18:1 }}
-        transition={{ type:"spring",stiffness:260,damping:16 }}
+        animate={{ rotate: hov ? -12 : 0, scale: hov ? 1.18 : 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 16 }}
         style={{
-          width:42,height:42,borderRadius:14,flexShrink:0,
+          width: 42, height: 42, borderRadius: 14, flexShrink: 0,
           background: `linear-gradient(135deg, ${tip.col}, rgba(255,255,255,0.5))`,
-          backdropFilter:"blur(16px)",
-          display:"flex",alignItems:"center",justifyContent:"center",
-          fontSize:20,position:"relative",zIndex:7,
+          backdropFilter: "blur(16px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 20, position: "relative", zIndex: 7,
           boxShadow: hov
             ? "0 8px 22px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(255,255,255,0.5), inset 0 1px 6px rgba(255,255,255,0.4)"
             : "0 6px 16px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(255,255,255,0.3), inset 0 1px 4px rgba(255,255,255,0.25)",
         }}
       >{tip.icon}</motion.div>
-      <div style={{ position:"relative",zIndex:7 }}>
-        <div style={{fontSize:13,fontWeight:700,color:"#2d1f4e",marginBottom:5}}>{tip.title}</div>
-        <div style={{fontSize:11.5,color:"#9b93b8",lineHeight:1.55,fontWeight:500}}>{tip.desc}</div>
+      <div style={{ position: "relative", zIndex: 7 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1f4e", marginBottom: 5 }}>{tip.title}</div>
+        <div style={{ fontSize: 11.5, color: "#9b93b8", lineHeight: 1.55, fontWeight: 500 }}>{tip.desc}</div>
       </div>
     </motion.div>
   );
@@ -519,8 +530,8 @@ function GlassNavItem({ item, isActive, onClick, index }) {
         boxShadow: isActive
           ? "0 4px 22px rgba(139,92,246,0.12), 0 0 0 0.5px rgba(255,255,255,0.45), inset 0 1px 8px rgba(255,255,255,0.30)"
           : hov
-          ? "0 2px 16px rgba(139,92,246,0.06), 0 0 0 0.5px rgba(255,255,255,0.30), inset 0 1px 6px rgba(255,255,255,0.20)"
-          : "none",
+            ? "0 2px 16px rgba(139,92,246,0.06), 0 0 0 0.5px rgba(255,255,255,0.30), inset 0 1px 6px rgba(255,255,255,0.20)"
+            : "none",
         transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
         position: "relative", overflow: "hidden",
       }}
@@ -572,7 +583,7 @@ function GlassNavItem({ item, isActive, onClick, index }) {
 
 /* ══════ GLASS BUTTON ══════ */
 function GlassButton({ children, variant = "secondary", style: btnStyle, ...props }) {
-  const [hov,   setHov]   = useState(false);
+  const [hov, setHov] = useState(false);
   const [press, setPress] = useState(false);
   const isPrimary = variant === "primary";
 
@@ -652,11 +663,29 @@ function GlassButton({ children, variant = "secondary", style: btnStyle, ...prop
 /* ══════ GLASS USER CARD ══════ */
 function GlassUserCard({ onNavigate }) {                              // ← ADDED onNavigate prop
   const [hov, setHov] = useState(false);
+  const { user, logout } = useAuth();                                 // ← ADDED useAuth
+  const router = useRouter();                                         // ← ADDED useRouter
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "US";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    if (parts[0].length >= 2) return (parts[0][0] + parts[0][1]).toUpperCase();
+    return parts[0][0].toUpperCase();
+  };
+
+  const initials = getInitials(user?.name);
+  const displayName = user?.name || "User";
+
   return (
     <motion.div
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      onClick={() => onNavigate("/account")}                          // ← ADDED onClick
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.97 }}
       style={{
@@ -668,7 +697,7 @@ function GlassUserCard({ onNavigate }) {                              // ← ADD
           ? "0 12px 36px rgba(120,80,220,0.10), 0 0 0 0.5px rgba(255,255,255,0.45), inset 0 1px 8px rgba(255,255,255,0.28)"
           : "0 8px 28px rgba(120,80,220,0.05), 0 0 0 0.5px rgba(255,255,255,0.25), inset 0 1px 4px rgba(255,255,255,0.16)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        cursor: "pointer", position: "relative", overflow: "hidden",
+        cursor: "default", position: "relative", overflow: "hidden",
         transition: "background 0.3s ease, box-shadow 0.35s cubic-bezier(0.22,1,0.36,1)",
       }}
     >
@@ -704,9 +733,9 @@ function GlassUserCard({ onNavigate }) {                              // ← ADD
           display: "flex", alignItems: "center", justifyContent: "center",
           color: "#fff", fontSize: 12, fontWeight: 700,
           boxShadow: "0 4px 16px rgba(109,40,217,0.35), 0 0 0 0.5px rgba(255,255,255,0.25)",
-        }}>AL</div>
+        }}>{initials}</div>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1f4e" }}>Alex L.</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1f4e" }}>{displayName}</div>
           <div style={{
             fontSize: 10, fontWeight: 700,
             background: "linear-gradient(90deg,#8b5cf6,#60a5fa)",
@@ -714,7 +743,10 @@ function GlassUserCard({ onNavigate }) {                              // ← ADD
           }}>Pro Plan ✦</div>
         </div>
       </div>
-      <motion.button whileHover={{ x: 4 }} whileTap={{ x: 1 }}
+      <motion.button
+        onClick={handleLogout}
+        title="Logout"
+        whileHover={{ x: 4 }} whileTap={{ x: 1 }}
         style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#9b93b8", position: "relative", zIndex: 2 }}
       >→</motion.button>
     </motion.div>
@@ -882,11 +914,11 @@ function GlassLink({ children, onClick }) {                           // ← ADD
    NEW SPACE MODAL  ← ADDED ENTIRELY NEW COMPONENT
 ══════════════════════════════════════════════ */
 function NewSpaceModal({ onClose, onNavigate }) {
-  const [shape,  setShape]  = useState("Rectangle");
-  const [width,  setWidth]  = useState("4.5");
+  const [shape, setShape] = useState("Rectangle");
+  const [width, setWidth] = useState("4.5");
   const [height, setHeight] = useState("3.2");
-  const [wall,   setWall]   = useState("Soft White (#FEFEFE)");
-  const [floor,  setFloor]  = useState("Warm Oak");
+  const [wall, setWall] = useState("Soft White (#FEFEFE)");
+  const [floor, setFloor] = useState("Warm Oak");
 
   const inputStyle = {
     width: "100%", padding: "14px 18px",
@@ -927,7 +959,7 @@ function NewSpaceModal({ onClose, onNavigate }) {
       {/* ── Modal panel: glides up from below ── */}
       <motion.div
         initial={{ y: 80, opacity: 0, scale: 0.94 }}
-        animate={{ y: 0,  opacity: 1, scale: 1 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 60, opacity: 0, scale: 0.95 }}
         transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.9 }}
         onClick={(e) => e.stopPropagation()}
@@ -1012,7 +1044,8 @@ function NewSpaceModal({ onClose, onNavigate }) {
                 position: "relative", overflow: "hidden",
               }}
             >
-              <div style={{ position: "absolute", inset: 0,
+              <div style={{
+                position: "absolute", inset: 0,
                 backgroundImage: "linear-gradient(rgba(139,92,246,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.04) 1px,transparent 1px)",
                 backgroundSize: "24px 24px"
               }} />
@@ -1105,6 +1138,9 @@ function NewSpaceModal({ onClose, onNavigate }) {
 
 /* ══════ WELCOME HEADER ══════ */
 function WelcomeHeader({ onOpenModal }) {                             // ← ADDED onOpenModal prop
+  const { user } = useAuth();
+  const firstName = user?.name ? user.name.split(' ')[0] : 'User';
+
   return (
     <motion.div
       initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
@@ -1122,7 +1158,7 @@ function WelcomeHeader({ onOpenModal }) {                             // ← ADD
             backgroundSize: "300% auto",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             animation: "shimmer 3s linear infinite",
-          }}>Dinithi!</span>
+          }}>{firstName}!</span>
         </h1>
         <p style={{ color: "#9b93b8", fontSize: 14, fontWeight: 500 }}>
           Ready to design your dream space today? ✨
@@ -1174,15 +1210,23 @@ export default function HomeScreen() {
 
       {/* Background orbs */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "-12%", left: "-8%", width: 520, height: 520, borderRadius: "50%",
-          background: "radial-gradient(circle,rgba(167,139,250,0.28) 0%,transparent 68%)", animation: "floatA 8s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", bottom: "0", right: "-6%", width: 440, height: 440, borderRadius: "50%",
-          background: "radial-gradient(circle,rgba(96,165,250,0.22) 0%,transparent 68%)", animation: "floatB 10s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", top: "38%", left: "28%", width: 340, height: 340, borderRadius: "50%",
-          background: "radial-gradient(circle,rgba(244,114,182,0.14) 0%,transparent 68%)", animation: "floatA 12s ease-in-out infinite 2s" }} />
-        <div style={{ position: "absolute", inset: 0,
+        <div style={{
+          position: "absolute", top: "-12%", left: "-8%", width: 520, height: 520, borderRadius: "50%",
+          background: "radial-gradient(circle,rgba(167,139,250,0.28) 0%,transparent 68%)", animation: "floatA 8s ease-in-out infinite"
+        }} />
+        <div style={{
+          position: "absolute", bottom: "0", right: "-6%", width: 440, height: 440, borderRadius: "50%",
+          background: "radial-gradient(circle,rgba(96,165,250,0.22) 0%,transparent 68%)", animation: "floatB 10s ease-in-out infinite"
+        }} />
+        <div style={{
+          position: "absolute", top: "38%", left: "28%", width: 340, height: 340, borderRadius: "50%",
+          background: "radial-gradient(circle,rgba(244,114,182,0.14) 0%,transparent 68%)", animation: "floatA 12s ease-in-out infinite 2s"
+        }} />
+        <div style={{
+          position: "absolute", inset: 0,
           backgroundImage: "linear-gradient(rgba(139,92,246,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.03) 1px,transparent 1px)",
-          backgroundSize: "44px 44px" }} />
+          backgroundSize: "44px 44px"
+        }} />
       </div>
 
       <GlassSidebar active={active} setActive={setActive} onNavigate={onNavigate} />  {/* ← ADDED onNavigate */}
@@ -1197,7 +1241,7 @@ export default function HomeScreen() {
         <section style={{ marginBottom: 32 }}>
           <SectionHeader
             title="Recent Spaces"
-            action={<GlassLink onClick={() => onNavigate("/projects")}>View all →</GlassLink>} 
+            action={<GlassLink onClick={() => onNavigate("/projects")}>View all →</GlassLink>}
           />
           <div style={{ display: "flex", gap: 16 }}>
             {RECENT.map((p, i) => <ProjectCard key={p.id} p={p} delay={300 + i * 90} />)}

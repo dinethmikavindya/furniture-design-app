@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import pkg from 'pg';
+import { verifyToken } from '@/lib/middleware/auth';
+
 const { Pool } = pkg;
 
 const pool = new Pool({
@@ -8,24 +10,22 @@ const pool = new Pool({
 
 /**
  * GET user settings
- * GET /api/settings?userId={id}
+ * GET /api/settings
+ * Requires: Authorization header with Bearer token
  */
 export async function GET(request) {
     try {
-        const { searchParams } = new URL(request.url);
-        const userId = searchParams.get('userId');
-
-        if (!userId) {
+        const auth = verifyToken(request);
+        if (auth.error) {
             return NextResponse.json(
-                { error: 'User ID required' },
-                { status: 400 }
+                { error: auth.error },
+                { status: auth.status }
             );
         }
 
-        // Get user settings
         const query = await pool.query(
             'SELECT theme, preferences FROM users WHERE id = $1',
-            [userId]
+            [auth.userId]
         );
 
         if (query.rows.length === 0) {
@@ -37,18 +37,11 @@ export async function GET(request) {
 
         const user = query.rows[0];
 
-        // Return all settings with defaults
         return NextResponse.json({
             theme: user.theme || 'light',
-            preferences: {
-                // Grid settings
-                gridEnabled: user.preferences?.gridEnabled ?? true,
-                gridSize: user.preferences?.gridSize || 20,
-                snapToGrid: user.preferences?.snapToGrid ?? false,
-
-                // Measurement settings
-                measurementSystem: user.preferences?.measurementSystem || 'metric',
-                ceilingHeight: user.preferences?.ceilingHeight || 240,
+            preferences: user.preferences || {
+                gridEnabled: true,
+                gridSize: 20
             }
         });
 
@@ -64,39 +57,22 @@ export async function GET(request) {
 /**
  * UPDATE user settings
  * PUT /api/settings
- * Body: { userId, theme?, preferences? }
+ * Body: { theme?, preferences? }
+ * Requires: Authorization header with Bearer token
  */
 export async function PUT(request) {
     try {
+        const auth = verifyToken(request);
+        if (auth.error) {
+            return NextResponse.json(
+                { error: auth.error },
+                { status: auth.status }
+            );
+        }
+
         const body = await request.json();
-        const { userId, theme, preferences } = body;
+        const { theme, preferences } = body;
 
-        if (!userId) {
-            return NextResponse.json(
-                { error: 'User ID required' },
-                { status: 400 }
-            );
-        }
-
-        // Validate measurement system
-        if (preferences?.measurementSystem &&
-            !['metric', 'imperial'].includes(preferences.measurementSystem)) {
-            return NextResponse.json(
-                { error: 'Measurement system must be "metric" or "imperial"' },
-                { status: 400 }
-            );
-        }
-
-        // Validate ceiling height
-        if (preferences?.ceilingHeight &&
-            (preferences.ceilingHeight < 200 || preferences.ceilingHeight > 500)) {
-            return NextResponse.json(
-                { error: 'Ceiling height must be between 200 and 500 cm' },
-                { status: 400 }
-            );
-        }
-
-        // Build update query dynamically
         const updates = [];
         const values = [];
         let paramCount = 1;
@@ -120,10 +96,8 @@ export async function PUT(request) {
             );
         }
 
-        // Add userId as last parameter
-        values.push(userId);
+        values.push(auth.userId);
 
-        // Execute update
         const query = `
       UPDATE users 
       SET ${updates.join(', ')}, updated_at = NOW()
