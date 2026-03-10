@@ -1,0 +1,20 @@
+﻿2266fd9 WIP: local changes
+f49e077 feat: complete authentication flow, protected routes, and UI fixes
+abd5076 Added forgot password page
+b40a980 Fixed register route and added auth files
+417a39a Fixed register route to include name field
+93d8951 Fixed auth API URLs and restored all features
+3828f90 Remove incorrect nested folders and duplicate files
+04ef594 Remove duplicate settings route file
+5a7d250 Archive Express backend as reference documentation
+9d14e52 Complete all backend APIs: authentication (login, register, logout, forgot-password), projects CRUD, and JWT middleware. All 17 backend features complete.
+e73fb6d Add Settings Page UI: glassmorphism design with Units & Measurements, Editor Preferences (grid, snap), and Interface (dark mode) sections. Connected to backend APIs
+3c187ca Add Templates API: database-backed templates system with list, details, create from template endpoints. Includes 4 seed templates (Modern Living, Cozy Bedroom, Home Office, Minimal Studio)
+429ab95 Add Save As API: duplicate projects with new name, copy design state and furniture items
+6f899f5 Add Project Rename API: rename projects with validation (empty name, max 100 chars)
+df5b453 Add Furniture Properties API: get, update (dimensions, rotation, color, position), delete furniture items
+d71ad6d Add Room Settings API: update wall color, floor color, dimensions, ceiling height
+9699b9b Add Furniture Catalog API: list, details, category filter, search endpoints
+82e563f Complete Settings API: add measurementSystem, ceilingHeight, snapToGrid fields
+0b15392 Add furniture search & filter system: search, category, size, color, price filters with sorting
+e4e6c03 Add SelectionManager for multi-select: bulk move, delete, color, rotate, scale operations
