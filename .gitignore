@@ -58,4 +58,4 @@ npm-debug.log*
 .env.*.local
 
 # OS files 
-.DS_Store
+.DS_Storetemp-models/
