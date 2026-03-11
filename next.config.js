@@ -5,10 +5,16 @@ const nextConfig = {
     domains: ['localhost'],
     formats: ['image/avif', 'image/webp'],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['canvas'],
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.(glb|gltf)$/,
       type: 'asset/resource',
+    });
+    config.externals.push({
+      canvas: 'commonjs canvas'
     });
     return config;
   },

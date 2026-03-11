@@ -1,11 +1,10 @@
 // Database connection for furniture design app
 const { Pool } = require('pg');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../../.env') });
 
 const pool = new Pool({
-    host: 'localhost',
-    port: 5432,
-    database: 'furniture_db',
-    user: 'dinithiwijesinghe',
+    connectionString: process.env.DATABASE_URL || 'postgresql://dinithiwijesinghe:password@localhost:5432/furniture_db',
 });
 
 pool.connect((err, client, done) => {
