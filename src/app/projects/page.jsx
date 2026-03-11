@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import GlassSidebar from "@/components/GlassSidebar";
 
 /* ─── MOCK DATA ─── */
 const MOCK_PROJECTS = [
@@ -16,15 +17,6 @@ const MOCK_PROJECTS = [
   { id: 8, name: "Sunroom", date: "15/01/2026", items: 7, lastEdited: "2 months ago", thumb: "#f0f0dc", accent: "#fde68a", shape: "Rectangle", w: 5, h: 3, tag: "Complete" },
 ];
 
-const NAV_ITEMS = [
-  { icon: "⌂", label: "Home" },
-  { icon: "⊞", label: "Projects", active: true },
-  { icon: "✏", label: "Editor" },
-  { icon: "◎", label: "Materials" },
-  { icon: "⚙", label: "Settings" },
-  { icon: "🛒", label: "Shop" },
-  { icon: "◯", label: "Account" },
-];
 
 const TAG_COLORS = {
   "In Progress": { bg: "rgba(139,92,246,0.12)", color: "#7c3aed", border: "rgba(139,92,246,0.20)" },
@@ -270,136 +262,7 @@ export default function ProjectsPage() {
       background: "linear-gradient(135deg,#f0eaff 0%,#eaf0ff 50%,#f5eaff 100%)",
       position: "relative",
     }}>
-      <style dangerouslySetInnerHTML={{ __html: css }} />
-
-      {/* Background orbs */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
-        <div style={{
-          position: "absolute", top: "-8%", left: "-5%", width: 480, height: 480, borderRadius: "50%",
-          background: "radial-gradient(circle,rgba(167,139,250,0.20) 0%,transparent 68%)",
-          animation: "floatA 10s ease-in-out infinite",
-        }} />
-        <div style={{
-          position: "absolute", bottom: "-8%", right: "10%", width: 400, height: 400, borderRadius: "50%",
-          background: "radial-gradient(circle,rgba(96,165,250,0.16) 0%,transparent 68%)",
-          animation: "floatA 13s ease-in-out infinite 2s",
-        }} />
-        <div style={{
-          position: "absolute", top: "40%", right: "-4%", width: 300, height: 300, borderRadius: "50%",
-          background: "radial-gradient(circle,rgba(236,72,153,0.08) 0%,transparent 68%)",
-          animation: "floatB 15s ease-in-out infinite 1s",
-        }} />
-        <div style={{
-          position: "absolute", inset: 0,
-          backgroundImage: "linear-gradient(rgba(139,92,246,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.025) 1px,transparent 1px)",
-          backgroundSize: "40px 40px",
-        }} />
-      </div>
-
-      {/* ══ SIDEBAR ══ */}
-      <motion.aside
-        initial={{ x: -30, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 120, damping: 20 }}
-        style={{
-          width: 240, flexShrink: 0, display: "flex", flexDirection: "column",
-          padding: "24px 16px",
-          zIndex: 20, position: "relative",
-          background: "rgba(255,255,255,0.18)",
-          backdropFilter: "blur(40px) saturate(200%)",
-          WebkitBackdropFilter: "blur(40px) saturate(200%)",
-          borderRight: "1px solid rgba(255,255,255,0.50)",
-          boxShadow: "2px 0 30px rgba(120,80,220,0.07)",
-        }}
-      >
-        {/* Logo */}
-        <div style={{ marginBottom: 36, paddingLeft: 8 }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#2d1f4e", letterSpacing: "-0.5px" }}>
-            Mauve Studio
-            <span style={{
-              background: "linear-gradient(90deg,#8b5cf6,#60a5fa,#ec4899,#8b5cf6)",
-              backgroundSize: "300% auto",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              animation: "shimmer 2.8s linear infinite",
-            }}>.</span>
-          </div>
-        </div>
-
-        {/* Nav items */}
-        <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-          {NAV_ITEMS.map((item, i) => (
-            <motion.div
-              key={item.label}
-              onHoverStart={() => setHoverNav(item.label)}
-              onHoverEnd={() => setHoverNav(null)}
-              whileTap={{ scale: 0.97 }}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: i * 0.05, type: "spring", stiffness: 140, damping: 20 }}
-              style={{
-                display: "flex", alignItems: "center", gap: 12,
-                padding: "11px 14px", borderRadius: 14, cursor: "pointer",
-                background: item.active
-                  ? "rgba(255,255,255,0.60)"
-                  : hoverNav === item.label ? "rgba(255,255,255,0.35)" : "transparent",
-                border: item.active
-                  ? "1px solid rgba(255,255,255,0.75)"
-                  : "1px solid transparent",
-                boxShadow: item.active
-                  ? "0 4px 16px rgba(120,80,220,0.10), inset 0 1px 0 rgba(255,255,255,0.9)"
-                  : "none",
-                transition: "all 0.2s cubic-bezier(0.22,1,0.36,1)",
-              }}
-            >
-              <span style={{
-                fontSize: 17,
-                color: item.active ? "#6d28d9" : "#9b93b8",
-                width: 22, textAlign: "center",
-              }}>{item.icon}</span>
-              <span style={{
-                fontSize: 15, fontWeight: item.active ? 700 : 500,
-                color: item.active ? "#2d1f4e" : "#9b93b8",
-              }}>{item.label}</span>
-              {item.active && (
-                <div style={{
-                  marginLeft: "auto", width: 6, height: 6, borderRadius: "50%",
-                  background: "linear-gradient(135deg,#8b5cf6,#6d28d9)",
-                }} />
-              )}
-            </motion.div>
-          ))}
-        </nav>
-
-        {/* User card */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, type: "spring" }}
-          style={{
-            padding: "12px 14px", borderRadius: 16,
-            background: "rgba(255,255,255,0.40)",
-            border: "1px solid rgba(255,255,255,0.70)",
-            boxShadow: "0 4px 16px rgba(120,80,220,0.07)",
-            display: "flex", alignItems: "center", gap: 10,
-          }}
-        >
-          <div style={{
-            width: 36, height: 36, borderRadius: 12, flexShrink: 0,
-            background: "linear-gradient(135deg,#8b5cf6,#6d28d9)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 13, fontWeight: 800, color: "#fff",
-            boxShadow: "0 4px 12px rgba(109,40,217,0.30)",
-          }}>AL</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1f4e" }}>Alex L.</div>
-            <div style={{
-              fontSize: 10, fontWeight: 600, color: "#8b5cf6",
-              background: "rgba(139,92,246,0.10)",
-              padding: "1px 6px", borderRadius: 20, display: "inline-block",
-            }}>Pro Plan</div>
-          </div>
-          <span style={{ fontSize: 16, color: "#c4b5fd", cursor: "pointer" }}>↪</span>
-        </motion.div>
-      </motion.aside>
+      <GlassSidebar active="Projects" />
 
       {/* ══ MAIN CONTENT ══ */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", zIndex: 10, position: "relative" }}>
