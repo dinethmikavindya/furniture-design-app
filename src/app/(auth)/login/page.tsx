@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import LoginForm from '@/components/auth/LoginForm';
+=======
+import LoginForm from '../../../components/auth/LoginForm';
+>>>>>>> 10952855-SandilS
 
 export default function LoginPage() {
   return (
