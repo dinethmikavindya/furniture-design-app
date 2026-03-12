@@ -1,9 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import SignUpForm from '@/components/auth/SignUpForm';
 
 export default function SignUpPage() {
   return <SignUpForm />;
 =======
+=======
+>>>>>>> 10953499-KaveenPerera
 import SignUpForm from '../../../components/auth/SignUpForm';
 
 export default function SignUpPage() {
@@ -14,5 +17,8 @@ export default function SignUpPage() {
       </div>
     </div>
   );
+<<<<<<< HEAD
 >>>>>>> 10952855-SandilS
+=======
+>>>>>>> 10953499-KaveenPerera
 }
