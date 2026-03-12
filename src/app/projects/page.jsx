@@ -2,20 +2,42 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassSidebar from "@/components/GlassSidebar";
 
-/* ─── MOCK DATA ─── */
-const MOCK_PROJECTS = [
-  { id: 1, name: "Living Room Refresh", date: "12/02/2026", items: 8, lastEdited: "10 mins ago", thumb: "#e8e0f0", accent: "#c4b5fd", shape: "L-Shape", w: 6.5, h: 5, tag: "In Progress" },
-  { id: 2, name: "Master Bedroom", date: "10/02/2026", items: 5, lastEdited: "1 hr ago", thumb: "#dce8f0", accent: "#93c5fd", shape: "Rectangle", w: 4, h: 5.5, tag: "Draft" },
-  { id: 3, name: "Home Office", date: "08/02/2026", items: 12, lastEdited: "2 days ago", thumb: "#e8f0dc", accent: "#86efac", shape: "Square", w: 4, h: 4, tag: "Complete" },
-  { id: 4, name: "Kids Room", date: "05/02/2026", items: 3, lastEdited: "3 days ago", thumb: "#f0e8dc", accent: "#fcd34d", shape: "Rectangle", w: 3.5, h: 4, tag: "Draft" },
-  { id: 5, name: "Studio Apartment", date: "01/02/2026", items: 15, lastEdited: "10 days ago", thumb: "#f0dce8", accent: "#f9a8d4", shape: "L-Shape", w: 8, h: 6, tag: "In Progress" },
-  { id: 6, name: "Guest Bedroom", date: "25/01/2026", items: 6, lastEdited: "2 weeks ago", thumb: "#e8dcf0", accent: "#d8b4fe", shape: "Rectangle", w: 3.5, h: 3, tag: "Complete" },
-  { id: 7, name: "Dining Area", date: "20/01/2026", items: 4, lastEdited: "1 month ago", thumb: "#dce8e8", accent: "#67e8f9", shape: "Square", w: 4.5, h: 4.5, tag: "Draft" },
-  { id: 8, name: "Sunroom", date: "15/01/2026", items: 7, lastEdited: "2 months ago", thumb: "#f0f0dc", accent: "#fde68a", shape: "Rectangle", w: 5, h: 3, tag: "Complete" },
-];
+/* ─── ACCENT COLORS for DB projects ─── */
+const ACCENTS = ["#c4b5fd","#93c5fd","#86efac","#fcd34d","#f9a8d4","#d8b4fe","#67e8f9","#fde68a"];
+const THUMBS  = ["#e8e0f0","#dce8f0","#e8f0dc","#f0e8dc","#f0dce8","#e8dcf0","#dce8e8","#f0f0dc"];
+
+function formatRelative(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins} mins ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hr ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days} days ago`;
+  return new Date(dateStr).toLocaleDateString();
+}
+
+function dbToUi(p, i) {
+  const rc = p.room_config || {};
+  const items = Array.isArray(p.furniture_items) ? p.furniture_items.length : 0;
+  return {
+    id: p.id,
+    name: p.name,
+    date: new Date(p.created_at).toLocaleDateString(),
+    items,
+    lastEdited: formatRelative(p.updated_at || p.created_at),
+    thumb: THUMBS[i % THUMBS.length],
+    accent: ACCENTS[i % ACCENTS.length],
+    shape: "Rectangle",
+    w: rc.width ? (rc.width / 80) : 5,
+    h: rc.height ? (rc.height / 80) : 4,
+    tag: "Draft",
+  };
+}
 
 
 const TAG_COLORS = {
@@ -204,18 +226,94 @@ function ProjectCard({ project, selected, onClick, view }) {
 
 /* ─── MAIN PAGE ─── */
 export default function ProjectsPage() {
-  const [selected, setSelected] = useState(1);
+  const router = useRouter();
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [selected, setSelected] = useState(null);
   const [view, setView] = useState("grid");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/templates')
+      .then(r => r.json())
+      .then(data => setTemplates(data.templates || []))
+      .catch(console.error);
+  }, []);
   const [hoverNav, setHoverNav] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  const selectedProject = MOCK_PROJECTS.find(p => p.id === selected);
+  useEffect(() => {
+    fetch('/api/projects', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        const uiProjects = (data.projects || []).map(dbToUi);
+        setProjects(uiProjects);
+        if (uiProjects.length > 0) setSelected(uiProjects[0].id);
+      })
+      .catch(console.error)
+      .finally(() => setLoadingProjects(false));
+  }, []);
 
-  const filtered = MOCK_PROJECTS.filter(p => {
+  const handleCreate = async () => {
+    if (!newName.trim()) return;
+    setCreating(true);
+    try {
+      let data;
+      if (selectedTemplate) {
+        const res = await fetch('/api/projects/from-template', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ templateId: selectedTemplate.id, projectName: newName.trim() }),
+        });
+        data = await res.json();
+      } else {
+        const res = await fetch('/api/projects', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName.trim() }),
+        });
+        data = await res.json();
+      }
+      if (data.project) {
+        const newUi = dbToUi(data.project, projects.length);
+        setProjects(prev => [newUi, ...prev]);
+        setSelected(newUi.id);
+        setShowNew(false);
+        setNewName("");
+        setSelectedTemplate(null);
+        router.push(`/editor/2d?projectId=${data.project.id}`);
+      }
+    } catch(e) { console.error(e); }
+    setCreating(false);
+  };
+
+  const handleDelete = async () => {
+    if (!selected) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/projects/${selected}`, {
+        method: 'DELETE', credentials: 'include',
+      });
+      const remaining = projects.filter(p => p.id !== selected);
+      setProjects(remaining);
+      setSelected(remaining.length > 0 ? remaining[0].id : null);
+      setShowDeleteConfirm(false);
+    } catch(e) { console.error(e); }
+    setDeleting(false);
+  };
+
+  const selectedProject = projects.find(p => p.id === selected);
+
+  const filtered = projects.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchFilter = filter === "All" || p.tag === filter;
     return matchSearch && matchFilter;
@@ -286,7 +384,7 @@ export default function ProjectsPage() {
               Your Spaces
             </h1>
             <p style={{ fontSize: 12, color: "#9b93b8", marginTop: 2 }}>
-              {MOCK_PROJECTS.length} projects · {MOCK_PROJECTS.filter(p => p.tag === "Complete").length} complete
+              {projects.length} projects
             </p>
           </div>
 
@@ -301,13 +399,13 @@ export default function ProjectsPage() {
                 style={{ display: "flex", gap: 8, alignItems: "center" }}
               >
                 {[
-                  { label: "Open / Edit", icon: "✏", primary: false },
-                  { label: "Rename",      icon: "⟳", primary: false },
-                  { label: "Duplicate",   icon: "⊕", primary: false },
-                  { label: "Export",      icon: "↑", primary: false },
+                  { label: "Open / Edit", icon: "✏", action: () => router.push(`/editor/2d?projectId=${selected}`) },
+                  { label: "Duplicate",   icon: "⊕", action: null },
+                  { label: "Export",      icon: "↑", action: null },
                 ].map(btn => (
                   <motion.button key={btn.label}
                     whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.96 }}
+                    onClick={btn.action || undefined}
                     style={{
                       display: "flex", alignItems: "center", gap: 6,
                       padding: "8px 16px", borderRadius: 50, border: "none",
@@ -616,6 +714,7 @@ export default function ProjectsPage() {
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     <motion.button
                       whileHover={{ scale: 1.02, y: -1 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => router.push(`/editor/2d?projectId=${selected}`)}
                       style={{
                         width: "100%", padding: "13px", borderRadius: 14, border: "none",
                         fontFamily: "'Afacad',sans-serif", fontSize: 14, fontWeight: 700,
@@ -679,12 +778,13 @@ export default function ProjectsPage() {
               exit={{ scale: 0.9, y: 20, opacity: 0 }}
               transition={{ type: "spring", stiffness: 160, damping: 22 }}
               style={{
-                width: 460, borderRadius: 28,
+                width: 520, borderRadius: 28,
                 background: "rgba(255,255,255,0.75)",
                 backdropFilter: "blur(40px) saturate(200%)",
                 border: "1.5px solid rgba(255,255,255,0.80)",
                 boxShadow: "0 24px 80px rgba(80,40,160,0.18)",
                 overflow: "hidden",
+                maxHeight: "90vh", display: "flex", flexDirection: "column",
               }}
             >
               {/* Modal header */}
@@ -708,7 +808,7 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              <div style={{ padding: "22px 26px" }}>
+              <div style={{ padding: "22px 26px", overflowY: "auto", flex: 1 }}>
                 {/* Room name */}
                 <div style={{ marginBottom: 18 }}>
                   <label style={{ fontSize: 11, fontWeight: 700, color: "#9b93b8", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: 8 }}>
@@ -783,21 +883,54 @@ export default function ProjectsPage() {
                   ))}
                 </div>
 
+                {/* Template picker */}
+                {templates.length > 0 && (
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "#9b93b8", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: 8 }}>
+                      Start from Template <span style={{ fontWeight: 400, textTransform: "none", fontSize: 10 }}>(optional)</span>
+                    </label>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, maxHeight: 180, overflowY: "auto" }}>
+                      {templates.map(t => (
+                        <motion.button key={t.id}
+                          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                          onClick={() => setSelectedTemplate(selectedTemplate?.id === t.id ? null : t)}
+                          style={{
+                            padding: "10px 8px", borderRadius: 12,
+                            border: selectedTemplate?.id === t.id ? "2px solid #8b5cf6" : "1.5px solid rgba(139,92,246,0.20)",
+                            background: selectedTemplate?.id === t.id ? "rgba(139,92,246,0.10)" : "rgba(255,255,255,0.55)",
+                            cursor: "pointer", fontFamily: "'Afacad',sans-serif",
+                            fontSize: 11, fontWeight: 700, color: selectedTemplate?.id === t.id ? "#6d28d9" : "#6b5b95",
+                            textAlign: "center", transition: "all 0.2s",
+                          }}
+                        >
+                          <div style={{ fontSize: 18, marginBottom: 4 }}>
+                            {t.category === "Living Room" ? "🛋️" : t.category === "Bedroom" ? "🛏️" : t.category === "Office" ? "💼" : t.category === "Dining Room" ? "🍽️" : t.category === "Studio" ? "🏠" : "🧸"}
+                          </div>
+                          {t.name}
+                          <div style={{ fontSize: 9, color: "#9b93b8", marginTop: 2 }}>{t.category}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Create button */}
                 <motion.button
                   whileHover={{ scale: 1.02, y: -1 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowNew(false)}
+                  onClick={handleCreate}
+                  disabled={creating || !newName.trim()}
                   style={{
                     width: "100%", padding: "14px", borderRadius: 16, border: "none",
                     fontFamily: "'Afacad',sans-serif", fontSize: 15, fontWeight: 800,
-                    cursor: "pointer",
+                    cursor: creating ? "not-allowed" : "pointer",
                     background: "linear-gradient(135deg,#8b5cf6,#6d28d9)",
                     color: "#fff",
                     boxShadow: "0 8px 24px rgba(109,40,217,0.35)",
                     letterSpacing: "0.2px",
+                    opacity: creating || !newName.trim() ? 0.6 : 1,
                   }}
                 >
-                  ✦ Create Space
+                  {creating ? "Creating…" : "✦ Create Space"}
                 </motion.button>
               </div>
             </motion.div>

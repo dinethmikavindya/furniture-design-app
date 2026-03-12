@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 
 const TEMP_ROOM = {
@@ -272,22 +272,60 @@ function CanvasEditor({ roomConfig, furniture, selectedId, onSelect, onDragEnd, 
 ══════════════════════════════════════════ */
 export default function Editor2DClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get("projectId");
   const [activeCategory, setActiveCategory] = useState("Sofas");
- const [roomConfig, setRoomConfig] = useState(() => {
-  try {
-    const saved = localStorage.getItem("mauve_room");
-    return saved ? JSON.parse(saved) : TEMP_ROOM;
-  } catch { return TEMP_ROOM; }
-});
-  const [zoom,           setZoom]           = useState(1);
-const [furniture, setFurniture] = useState(() => {
-  try {
-    const saved = localStorage.getItem("mauve_furniture");
-    return saved ? JSON.parse(saved) : [];
-  } catch { return []; }
-});
-  const [selectedId,     setSelectedId]     = useState(null);
-  const [saved,          setSaved]          = useState(false);
+  const [roomConfig, setRoomConfig] = useState(TEMP_ROOM);
+  const [zoom, setZoom] = useState(1);
+  const [furniture, setFurniture] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [saved, setSaved] = useState(false);
+  const [dbLoaded, setDbLoaded] = useState(false);
+  const saveTimerRef = useRef(null);
+
+  // Load from DB if projectId, else localStorage
+  useEffect(() => {
+    if (projectId) {
+      fetch(`/api/projects/${projectId}`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.project) {
+            const rc = data.project.room_config;
+            const fi = data.project.furniture_items;
+            if (rc && typeof rc === 'object') {
+              const width  = rc.width  > 50 ? rc.width  / SCALE : rc.width;
+              const height = rc.height > 50 ? rc.height / SCALE : rc.height;
+              setRoomConfig({ ...TEMP_ROOM, ...rc, width, height });
+            }
+            if (Array.isArray(fi)) {
+              // Normalize: other team members use width/depth, we use w/h
+              const normalized = fi.map((item, i) => ({
+                id: item.id || `f_${i}`,
+                type: item.type || item.furniture_type || 'chair-d',
+                label: item.label || item.name || 'Furniture',
+                x: item.x ?? item.position_x ?? 50 + i * 20,
+                y: item.y ?? item.position_y ?? 50 + i * 20,
+                w: item.w ?? item.width ?? 80,
+                h: item.h ?? item.depth ?? item.height ?? 80,
+                color: item.color || '#c4b5fd',
+                rotation: item.rotation ?? 0,
+              }));
+              setFurniture(normalized);
+            }
+          }
+          setDbLoaded(true);
+        })
+        .catch(() => setDbLoaded(true));
+    } else {
+      try {
+        const savedRoom = localStorage.getItem("mauve_room");
+        const savedFurniture = localStorage.getItem("mauve_furniture");
+        if (savedRoom) setRoomConfig(JSON.parse(savedRoom));
+        if (savedFurniture) setFurniture(JSON.parse(savedFurniture));
+      } catch {}
+      setDbLoaded(true);
+    }
+  }, [projectId]);
   const canvasContainerRef = useRef(null);
 
   /* ── Auto-fit zoom so room fills the canvas nicely on load ── */
@@ -327,8 +365,17 @@ const [furniture, setFurniture] = useState(() => {
   }, [furniture, roomConfig]);
 
   const handleSave = () => {
-    localStorage.setItem("mauve_furniture", JSON.stringify(furniture));
-    localStorage.setItem("mauve_room",      JSON.stringify(roomConfig));
+    if (projectId) {
+      fetch(`/api/projects/${projectId}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomConfig, furnitureItems: furniture }),
+      }).then(r => r.json()).then(d => console.log("Manual save:", d)).catch(console.error);
+    } else {
+      localStorage.setItem("mauve_furniture", JSON.stringify(furniture));
+      localStorage.setItem("mauve_room", JSON.stringify(roomConfig));
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
