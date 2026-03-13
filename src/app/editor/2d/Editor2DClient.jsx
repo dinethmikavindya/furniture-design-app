@@ -40,7 +40,6 @@ const CATEGORIES  = Object.keys(FURNITURE_CATALOG);
 const SCALE       = 80;
 const ITEM_COLORS = ["#c4b5fd","#a78bfa","#93c5fd","#6ee7b7","#fde68a","#fbcfe8","#fca5a5","#d1fae5"];
 
-// Preset swatches for wall & floor
 const WALL_COLORS  = ["#e8e0f0","#fef9f0","#e0f0f0","#f0e8e0","#e0e8f0","#f5f5f5","#2d2d3a","#4a3728"];
 const FLOOR_COLORS = ["#f5f0e8","#e8d5b0","#c8b89a","#d4c4b0","#f0ebe0","#e8e0d8","#5c4a32","#3a3028"];
 
@@ -48,7 +47,7 @@ let _uid = 1;
 function uid()    { return `f_${_uid++}`; }
 function mToPx(m) { return parseFloat(m) * SCALE; }
 
-/* ── tiny colour swatch picker ── */
+/* ── colour swatch picker ── */
 function ColorRow({ colors, value, onChange }) {
   return (
     <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
@@ -60,9 +59,7 @@ function ColorRow({ colors, value, onChange }) {
           flexShrink: 0,
         }} />
       ))}
-      {/* native colour picker as a last option */}
-      <label style={{ cursor:"pointer", fontSize:11, color:"#9b93b8", userSelect:"none" }}
-        title="Pick custom colour">
+      <label style={{ cursor:"pointer", fontSize:11, color:"#9b93b8", userSelect:"none" }} title="Pick custom colour">
         ✎
         <input type="color" value={value} onChange={e => onChange(e.target.value)}
           style={{ opacity:0, width:0, height:0, position:"absolute" }} />
@@ -71,15 +68,295 @@ function ColorRow({ colors, value, onChange }) {
   );
 }
 
+/* ── Top-down SVG furniture shapes ── */
 function FurniturePreview({ item }) {
+  const c = item.color;
+  const dark = c + "cc";
+  const light = "rgba(255,255,255,0.45)";
+
+  const type = item.type;
+
+  // Sofa (top-down: backrest at top, seat below, two arms on sides)
+  if (type.startsWith("sofa-1") || type === "chair-a") {
+    return (
+      <svg width={52} height={44} viewBox="0 0 52 44" fill="none">
+        {/* body */}
+        <rect x="8" y="10" width="36" height="24" rx="5" fill={c} opacity="0.9"/>
+        {/* backrest */}
+        <rect x="8" y="7" width="36" height="9" rx="4" fill={dark}/>
+        {/* left arm */}
+        <rect x="5" y="10" width="7" height="18" rx="3" fill={dark}/>
+        {/* right arm */}
+        <rect x="40" y="10" width="7" height="18" rx="3" fill={dark}/>
+        {/* seat cushion gloss */}
+        <rect x="12" y="14" width="28" height="8" rx="3" fill={light}/>
+      </svg>
+    );
+  }
+
+  if (type.startsWith("sofa-")) {
+    return (
+      <svg width={52} height={44} viewBox="0 0 52 44" fill="none">
+        {/* seat */}
+        <rect x="5" y="12" width="42" height="20" rx="5" fill={c} opacity="0.9"/>
+        {/* backrest */}
+        <rect x="5" y="8" width="42" height="9" rx="4" fill={dark}/>
+        {/* left arm */}
+        <rect x="3" y="12" width="6" height="15" rx="3" fill={dark}/>
+        {/* right arm */}
+        <rect x="43" y="12" width="6" height="15" rx="3" fill={dark}/>
+        {/* cushion divider */}
+        <line x1="26" y1="13" x2="26" y2="31" stroke={light} strokeWidth="1.5"/>
+        {/* gloss */}
+        <rect x="9" y="13" width="34" height="6" rx="2" fill={light}/>
+      </svg>
+    );
+  }
+
+  // Bed (top-down: headboard at top, mattress, pillow)
+  if (type.startsWith("bed-")) {
+    return (
+      <svg width={52} height={44} viewBox="0 0 52 44" fill="none">
+        {/* mattress */}
+        <rect x="5" y="10" width="42" height="28" rx="4" fill={c} opacity="0.9"/>
+        {/* headboard */}
+        <rect x="5" y="7" width="42" height="8" rx="4" fill={dark}/>
+        {/* pillow(s) */}
+        {type === "bed-k" ? (
+          <>
+            <rect x="9"  y="16" width="14" height="9" rx="3" fill={light}/>
+            <rect x="29" y="16" width="14" height="9" rx="3" fill={light}/>
+          </>
+        ) : (
+          <rect x="13" y="16" width="26" height="9" rx="3" fill={light}/>
+        )}
+        {/* blanket fold */}
+        <rect x="5" y="30" width="42" height="5" rx="2" fill={dark} opacity="0.5"/>
+      </svg>
+    );
+  }
+
+  // Dining chair (top-down: small square with backrest line)
+  if (type === "chair-d") {
+    return (
+      <svg width={52} height={44} viewBox="0 0 52 44" fill="none">
+        <rect x="14" y="10" width="24" height="22" rx="4" fill={c} opacity="0.9"/>
+        {/* backrest bar */}
+        <rect x="14" y="8" width="24" height="6" rx="3" fill={dark}/>
+        {/* seat gloss */}
+        <rect x="18" y="14" width="16" height="8" rx="2" fill={light}/>
+      </svg>
+    );
+  }
+
+  // Office chair (round seat, 5-point base)
+  if (type === "chair-o") {
+    return (
+      <svg width={52} height={44} viewBox="0 0 52 44" fill="none">
+        {/* base spokes */}
+        {[0,72,144,216,288].map((angle, i) => {
+          const rad = (angle - 90) * Math.PI / 180;
+          return <line key={i} x1="26" y1="22" x2={26 + Math.cos(rad)*14} y2={22 + Math.sin(rad)*14} stroke={dark} strokeWidth="2.5" strokeLinecap="round"/>;
+        })}
+        {/* seat */}
+        <circle cx="26" cy="22" r="12" fill={c} opacity="0.9"/>
+        <circle cx="26" cy="22" r="7" fill={light}/>
+      </svg>
+    );
+  }
+
+  // Coffee table
+  if (type === "table-c") {
+    return (
+      <svg width={52} height={44} viewBox="0 0 52 44" fill="none">
+        <rect x="6" y="12" width="40" height="20" rx="10" fill={c} opacity="0.9"/>
+        <rect x="6" y="12" width="40" height="20" rx="10" fill="none" stroke={dark} strokeWidth="1.5"/>
+        <rect x="12" y="16" width="28" height="12" rx="6" fill={light}/>
+      </svg>
+    );
+  }
+
+  // Dining table (rectangle with 4 legs)
+  if (type === "table-d") {
+    return (
+      <svg width={52} height={44} viewBox="0 0 52 44" fill="none">
+        <rect x="5" y="10" width="42" height="24" rx="3" fill={c} opacity="0.9"/>
+        <rect x="5" y="10" width="42" height="24" rx="3" fill="none" stroke={dark} strokeWidth="1.5"/>
+        {/* legs */}
+        <rect x="7"  y="12" width="5" height="5" rx="1.5" fill={dark}/>
+        <rect x="40" y="12" width="5" height="5" rx="1.5" fill={dark}/>
+        <rect x="7"  y="27" width="5" height="5" rx="1.5" fill={dark}/>
+        <rect x="40" y="27" width="5" height="5" rx="1.5" fill={dark}/>
+        <rect x="12" y="14" width="28" height="16" rx="2" fill={light}/>
+      </svg>
+    );
+  }
+
+  // Side table (small square)
+  if (type === "table-s") {
+    return (
+      <svg width={52} height={44} viewBox="0 0 52 44" fill="none">
+        <rect x="13" y="10" width="26" height="24" rx="4" fill={c} opacity="0.9"/>
+        <rect x="13" y="10" width="26" height="24" rx="4" fill="none" stroke={dark} strokeWidth="1.5"/>
+        <circle cx="26" cy="22" r="8" fill={light}/>
+      </svg>
+    );
+  }
+
+  // Generic fallback
   return (
     <svg width={52} height={44} viewBox="0 0 52 44" fill="none">
-      <rect x="3" y="5" width="46" height="34" rx="5" fill={item.color} opacity="0.85"/>
-      <rect x="3" y="5" width="46" height="34" rx="5" fill="none"
-        stroke="rgba(255,255,255,0.7)" strokeWidth="1.2"/>
-      <rect x="7" y="9" width="16" height="10" rx="3" fill="rgba(255,255,255,0.30)"/>
+      <rect x="6" y="7" width="40" height="30" rx="6" fill={c} opacity="0.85"/>
+      <rect x="6" y="7" width="40" height="30" rx="6" fill="none" stroke={dark} strokeWidth="1.2"/>
+      <rect x="10" y="11" width="18" height="10" rx="3" fill={light}/>
     </svg>
   );
+}
+
+/* ══════════════════════════════════════════
+   CANVAS FURNITURE DRAWING — top-down shapes
+══════════════════════════════════════════ */
+function drawFurnitureShape(ctx, item, isSelected) {
+  const { w, h, color, type } = item;
+  const dark = color + "cc";
+  const light = "rgba(255,255,255,0.40)";
+
+  ctx.fillStyle = color;
+
+  if (type?.startsWith("sofa-") || type === "chair-a") {
+    // Seat body
+    roundRect(ctx, 0, h * 0.2, w, h * 0.8, 6);
+    ctx.fillStyle = color; ctx.fill();
+    // Backrest
+    ctx.fillStyle = dark;
+    roundRect(ctx, 0, 0, w, h * 0.28, 5); ctx.fill();
+    // Arms
+    roundRect(ctx, 0, h * 0.2, w * 0.1, h * 0.6, 4); ctx.fill();
+    roundRect(ctx, w * 0.9, h * 0.2, w * 0.1, h * 0.6, 4); ctx.fill();
+    // Cushion gloss
+    ctx.fillStyle = light;
+    roundRect(ctx, w * 0.12, h * 0.32, w * 0.76, h * 0.22, 3); ctx.fill();
+    if (w > 150) {
+      // divider for multi-seat
+      ctx.strokeStyle = "rgba(255,255,255,0.3)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(w/2, h*0.2); ctx.lineTo(w/2, h); ctx.stroke();
+    }
+  } else if (type?.startsWith("bed-")) {
+    // Mattress
+    ctx.fillStyle = color;
+    roundRect(ctx, 0, h*0.18, w, h*0.82, 5); ctx.fill();
+    // Headboard
+    ctx.fillStyle = dark;
+    roundRect(ctx, 0, 0, w, h*0.22, 5); ctx.fill();
+    // Pillows
+    ctx.fillStyle = light;
+    if (type === "bed-k") {
+      roundRect(ctx, w*0.08, h*0.26, w*0.36, h*0.22, 4); ctx.fill();
+      roundRect(ctx, w*0.56, h*0.26, w*0.36, h*0.22, 4); ctx.fill();
+    } else {
+      roundRect(ctx, w*0.15, h*0.26, w*0.7, h*0.22, 4); ctx.fill();
+    }
+    // Blanket fold
+    ctx.fillStyle = dark + "88";
+    roundRect(ctx, 0, h*0.78, w, h*0.22, 3); ctx.fill();
+  } else if (type === "chair-d") {
+    ctx.fillStyle = color;
+    roundRect(ctx, 0, h*0.18, w, h*0.82, 5); ctx.fill();
+    ctx.fillStyle = dark;
+    roundRect(ctx, 0, 0, w, h*0.24, 4); ctx.fill();
+    ctx.fillStyle = light;
+    roundRect(ctx, w*0.12, h*0.28, w*0.76, h*0.3, 3); ctx.fill();
+  } else if (type === "chair-o") {
+    // Spokes
+    ctx.strokeStyle = dark;
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * 72 - 90) * Math.PI / 180;
+      ctx.beginPath();
+      ctx.moveTo(w/2, h/2);
+      ctx.lineTo(w/2 + Math.cos(angle)*w*0.45, h/2 + Math.sin(angle)*h*0.45);
+      ctx.stroke();
+    }
+    // Seat
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(w/2, h/2, Math.min(w,h)*0.38, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = light;
+    ctx.beginPath();
+    ctx.arc(w/2, h/2, Math.min(w,h)*0.22, 0, Math.PI*2);
+    ctx.fill();
+  } else if (type === "table-c") {
+    // Oval coffee table
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(w/2, h/2, w*0.48, h*0.42, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = dark;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = light;
+    ctx.beginPath();
+    ctx.ellipse(w/2, h/2, w*0.34, h*0.28, 0, 0, Math.PI*2);
+    ctx.fill();
+  } else if (type === "table-d") {
+    ctx.fillStyle = color;
+    roundRect(ctx, 0, 0, w, h, 4); ctx.fill();
+    ctx.strokeStyle = dark; ctx.lineWidth = 1.5;
+    ctx.strokeRect(2, 2, w-4, h-4);
+    // Legs
+    ctx.fillStyle = dark;
+    [[3,3],[w-9,3],[3,h-9],[w-9,h-9]].forEach(([lx,ly]) => {
+      roundRect(ctx, lx, ly, 7, 7, 2); ctx.fill();
+    });
+    ctx.fillStyle = light;
+    roundRect(ctx, w*0.12, h*0.15, w*0.76, h*0.7, 3); ctx.fill();
+  } else if (type === "table-s") {
+    ctx.fillStyle = color;
+    roundRect(ctx, 0, 0, w, h, 5); ctx.fill();
+    ctx.strokeStyle = dark; ctx.lineWidth = 1.5;
+    ctx.strokeRect(2, 2, w-4, h-4);
+    ctx.fillStyle = light;
+    ctx.beginPath();
+    ctx.arc(w/2, h/2, Math.min(w,h)*0.32, 0, Math.PI*2);
+    ctx.fill();
+  } else {
+    // Generic
+    ctx.fillStyle = color;
+    roundRect(ctx, 0, 0, w, h, 6); ctx.fill();
+    ctx.fillStyle = light;
+    roundRect(ctx, 5, 5, w-10, (h-10)*0.45, 3); ctx.fill();
+  }
+
+  // Selection border
+  ctx.strokeStyle = isSelected ? "#8b5cf6" : "rgba(255,255,255,0.6)";
+  ctx.lineWidth   = isSelected ? 3 : 1.5;
+  roundRect(ctx, 0, 0, w, h, 6);
+  ctx.stroke();
+
+  // Label
+  ctx.fillStyle = "#2d1f4e";
+  ctx.font      = "600 11px Afacad, sans-serif";
+  ctx.textAlign = "center";
+  ctx.shadowColor = "rgba(255,255,255,0.8)";
+  ctx.shadowBlur  = 4;
+  ctx.fillText(item.label, w / 2, h / 2 + 4);
+  ctx.shadowBlur  = 0;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
 }
 
 /* ══════════════════════════════════════════
@@ -97,7 +374,6 @@ function CanvasEditor({ roomConfig, furniture, selectedId, onSelect, onDragEnd, 
   const offsetX = Math.max(60, (canvasSize.w / zoom - roomW) / 2);
   const offsetY = Math.max(60, (canvasSize.h / zoom - roomH) / 2);
 
-  /* watch container size */
   useEffect(() => {
     if (!containerRef.current) return;
     const obs = new ResizeObserver(([entry]) => {
@@ -107,7 +383,6 @@ function CanvasEditor({ roomConfig, furniture, selectedId, onSelect, onDragEnd, 
     return () => obs.disconnect();
   }, []);
 
-  /* draw everything */
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -118,9 +393,10 @@ function CanvasEditor({ roomConfig, furniture, selectedId, onSelect, onDragEnd, 
 
     // Floor
     ctx.fillStyle = roomConfig.floorColor;
-    ctx.fillRect(offsetX, offsetY, roomW, roomH);
+    roundRect(ctx, offsetX, offsetY, roomW, roomH, 4);
+    ctx.fill();
 
-    // Grid lines (1 m = SCALE px)
+    // Grid
     ctx.strokeStyle = "rgba(139,92,246,0.1)";
     ctx.lineWidth   = 1;
     for (let x = SCALE; x < roomW; x += SCALE) {
@@ -131,7 +407,7 @@ function CanvasEditor({ roomConfig, furniture, selectedId, onSelect, onDragEnd, 
     }
     for (let y = SCALE; y < roomH; y += SCALE) {
       ctx.beginPath();
-      ctx.moveTo(offsetX,       offsetY + y);
+      ctx.moveTo(offsetX,         offsetY + y);
       ctx.lineTo(offsetX + roomW, offsetY + y);
       ctx.stroke();
     }
@@ -152,30 +428,20 @@ function CanvasEditor({ roomConfig, furniture, selectedId, onSelect, onDragEnd, 
       ctx.rotate((item.rotation || 0) * Math.PI / 180);
       ctx.translate(-item.w / 2, -item.h / 2);
 
-      // shadow
-      ctx.fillStyle = "rgba(0,0,0,0.10)";
-      ctx.fillRect(3, 4, item.w, item.h);
+      // Drop shadow
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.18)";
+      ctx.shadowBlur  = 10;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 4;
+      ctx.fillStyle = "transparent";
+      roundRect(ctx, 0, 0, item.w, item.h, 6);
+      ctx.fill();
+      ctx.restore();
 
-      // body
-      ctx.fillStyle = item.color;
-      ctx.fillRect(0, 0, item.w, item.h);
+      drawFurnitureShape(ctx, item, isSelected);
 
-      // border
-      ctx.strokeStyle = isSelected ? "#8b5cf6" : "rgba(255,255,255,0.7)";
-      ctx.lineWidth   = isSelected ? 3 : 1.5;
-      ctx.strokeRect(0, 0, item.w, item.h);
-
-      // inner gloss
-      ctx.fillStyle = "rgba(255,255,255,0.18)";
-      ctx.fillRect(5, 5, item.w - 10, item.h - 10);
-
-      // label
-      ctx.fillStyle = "#2d1f4e";
-      ctx.font      = "600 11px Afacad, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(item.label, item.w / 2, item.h / 2 + 4);
-
-      // resize handles
+      // Resize handles
       if (isSelected) {
         ctx.fillStyle = "#8b5cf6";
         const hs = 8;
@@ -195,7 +461,6 @@ function CanvasEditor({ roomConfig, furniture, selectedId, onSelect, onDragEnd, 
 
   useEffect(() => { draw(); }, [draw, canvasSize]);
 
-  /* mouse helpers */
   const getMousePos = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
     return {
@@ -268,6 +533,33 @@ function CanvasEditor({ roomConfig, furniture, selectedId, onSelect, onDragEnd, 
 }
 
 /* ══════════════════════════════════════════
+   BACK BUTTON
+══════════════════════════════════════════ */
+function BackButton({ label, onClick }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display:"flex", alignItems:"center", gap:5,
+        padding:"5px 12px", borderRadius:50, border:"none",
+        background: hov ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.32)",
+        cursor:"pointer", fontSize:12, fontWeight:600,
+        color: hov ? "#4c1d95" : "#6b5b95",
+        fontFamily:"'Afacad',sans-serif",
+        transition:"all 0.18s",
+        boxShadow: hov ? "0 2px 12px rgba(139,92,246,0.15)" : "none",
+      }}
+    >
+      <span style={{ fontSize:14, lineHeight:1 }}>←</span>
+      {label}
+    </button>
+  );
+}
+
+/* ══════════════════════════════════════════
    MAIN PAGE
 ══════════════════════════════════════════ */
 export default function Editor2DClient() {
@@ -282,8 +574,8 @@ export default function Editor2DClient() {
   const [saved, setSaved] = useState(false);
   const [dbLoaded, setDbLoaded] = useState(false);
   const saveTimerRef = useRef(null);
+  const canvasContainerRef = useRef(null);
 
-  // Load from DB if projectId, else localStorage
   useEffect(() => {
     if (projectId) {
       fetch(`/api/projects/${projectId}`, { credentials: 'include' })
@@ -298,7 +590,6 @@ export default function Editor2DClient() {
               setRoomConfig({ ...TEMP_ROOM, ...rc, width, height });
             }
             if (Array.isArray(fi)) {
-              // Normalize: other team members use width/depth, we use w/h
               const normalized = fi.map((item, i) => ({
                 id: item.id || `f_${i}`,
                 type: item.type || item.furniture_type || 'chair-d',
@@ -326,25 +617,21 @@ export default function Editor2DClient() {
       setDbLoaded(true);
     }
   }, [projectId]);
-  const canvasContainerRef = useRef(null);
 
-  /* ── Auto-fit zoom so room fills the canvas nicely on load ── */
   useEffect(() => {
     const fit = () => {
       if (!canvasContainerRef.current) return;
       const { width: cw, height: ch } = canvasContainerRef.current.getBoundingClientRect();
       const roomW = mToPx(roomConfig.width);
       const roomH = mToPx(roomConfig.height);
-      const padding = 120; // breathing room around the room
+      const padding = 120;
       const zoomX = (cw - padding) / roomW;
       const zoomY = (ch - padding) / roomH;
-      const fitted = Math.min(zoomX, zoomY, 2); // cap at 200%
+      const fitted = Math.min(zoomX, zoomY, 2);
       setZoom(parseFloat(fitted.toFixed(2)));
     };
-    // slight delay so the container has rendered
     const t = setTimeout(fit, 100);
     return () => clearTimeout(t);
-  // only recalculate when room dimensions change
   }, [roomConfig.width, roomConfig.height]);
 
   const zoomIn  = () => setZoom(z => Math.min(+(z + 0.1).toFixed(1), 3));
@@ -358,7 +645,6 @@ export default function Editor2DClient() {
     setZoom(parseFloat(fitted.toFixed(2)));
   };
 
-  /* ── Auto-save to localStorage ── */
   useEffect(() => {
     localStorage.setItem("mauve_furniture", JSON.stringify(furniture));
     localStorage.setItem("mauve_room",      JSON.stringify(roomConfig));
@@ -406,7 +692,6 @@ export default function Editor2DClient() {
   const updateSelected = (key, val) =>
     setFurniture(prev => prev.map(f => f.id === selectedId ? { ...f, [key]: val } : f));
 
-  /* ── shared glass style ── */
   const glass = {
     borderRadius: 20,
     background: "rgba(255,255,255,0.22)",
@@ -443,13 +728,38 @@ export default function Editor2DClient() {
       <header style={{
         height:52, display:"flex", alignItems:"center", justifyContent:"space-between",
         padding:"0 20px", background:"rgba(255,255,255,0.18)", backdropFilter:"blur(24px)",
-        borderBottom:"1px solid rgba(255,255,255,0.45)", flexShrink:0,
+        borderBottom:"1px solid rgba(255,255,255,0.45)", flexShrink:0, gap:12,
       }}>
-        <span style={{ fontSize:18, fontWeight:700, color:"#2d1f4e", cursor:"pointer" }}
-          onClick={() => router.push("/dashboard")}>
-          Mauve Studio<span style={{ color:"#8b5cf6" }}>.</span>
-        </span>
+        {/* LEFT: Logo + back breadcrumbs */}
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:17, fontWeight:700, color:"#2d1f4e", cursor:"pointer",
+            whiteSpace:"nowrap" }}
+            onClick={() => router.push("/dashboard")}>
+            Mauve Studio<span style={{ color:"#8b5cf6" }}>.</span>
+          </span>
 
+          {/* Breadcrumb divider */}
+          <span style={{ color:"#c4b5fd", fontSize:14, userSelect:"none" }}>/</span>
+
+          {/* Back to Home */}
+          <BackButton label="Home" onClick={() => router.push("/dashboard")} />
+
+          <span style={{ color:"#c4b5fd", fontSize:14, userSelect:"none" }}>/</span>
+
+          {/* Back to Projects */}
+          <BackButton label="Projects" onClick={() => router.push("/projects")} />
+
+          <span style={{ color:"#c4b5fd", fontSize:14, userSelect:"none" }}>/</span>
+
+          {/* Current page label */}
+          <span style={{ fontSize:12, fontWeight:700, color:"#8b5cf6",
+            background:"rgba(139,92,246,0.10)", padding:"4px 10px",
+            borderRadius:50, whiteSpace:"nowrap" }}>
+            2D Editor
+          </span>
+        </div>
+
+        {/* CENTRE: 2D/3D toggle */}
         <div style={{ display:"flex", gap:4, background:"rgba(255,255,255,0.35)",
           border:"1px solid rgba(255,255,255,0.6)", borderRadius:50, padding:"3px" }}>
           <div style={{ padding:"5px 20px", borderRadius:50,
@@ -462,6 +772,7 @@ export default function Editor2DClient() {
           </button>
         </div>
 
+        {/* RIGHT: Save */}
         <motion.button whileHover={{ scale:1.05 }} whileTap={{ scale:0.95 }} onClick={handleSave}
           style={{
             padding:"7px 22px", borderRadius:50, border:"none",
@@ -470,6 +781,7 @@ export default function Editor2DClient() {
             background: saved ? "linear-gradient(135deg,#10b981,#059669)"
                                : "linear-gradient(135deg,#8b5cf6,#6d28d9)",
             boxShadow:"0 6px 20px rgba(109,40,217,0.35)", transition:"background 0.3s",
+            whiteSpace:"nowrap",
           }}>
           {saved ? "✓ Saved!" : "⊡ Save"}
         </motion.button>
@@ -501,7 +813,8 @@ export default function Editor2DClient() {
                 borderRadius:14, marginBottom:6, background:"rgba(255,255,255,0.28)",
                 border:"1px solid rgba(255,255,255,0.55)", cursor:"pointer",
               }}>
-                <div style={{ width:52, height:44, borderRadius:10, overflow:"hidden", flexShrink:0 }}>
+                <div style={{ width:52, height:44, borderRadius:10, overflow:"hidden",
+                  flexShrink:0, background:"rgba(255,255,255,0.3)" }}>
                   <FurniturePreview item={item} />
                 </div>
                 <div style={{ flex:1 }}>
@@ -516,7 +829,6 @@ export default function Editor2DClient() {
 
         {/* ── CENTRE: Canvas ── */}
         <div style={{ ...glass, flex:1, display:"flex", flexDirection:"column" }}>
-          {/* attach ref here so auto-fit can measure it */}
           <div ref={canvasContainerRef} style={{ flex:1, overflow:"hidden", display:"flex" }}>
             <CanvasEditor
               roomConfig={roomConfig} furniture={furniture}
@@ -543,7 +855,6 @@ export default function Editor2DClient() {
             <button onClick={zoomIn} style={{ width:34, height:34, borderRadius:50, border:"none",
               background:"rgba(255,255,255,0.45)", cursor:"pointer", fontSize:15 }}>+</button>
 
-            {/* Fit button */}
             <button onClick={zoomFit} title="Fit to screen"
               style={{ height:34, padding:"0 14px", borderRadius:50, border:"none",
                 background:"rgba(139,92,246,0.12)", cursor:"pointer",
@@ -564,9 +875,9 @@ export default function Editor2DClient() {
         </div>
 
         {/* ── RIGHT: Properties + Room ── */}
-        <div style={{ ...glass, width:260, padding:16, overflowY:"auto", display:"flex", flexDirection:"column", gap:0 }}>
+        <div style={{ ...glass, width:260, padding:16, overflowY:"auto",
+          display:"flex", flexDirection:"column", gap:0 }}>
 
-          {/* Item properties */}
           <div style={{ fontSize:14, fontWeight:700, color:"#2d1f4e", marginBottom:12 }}>⚙ Properties</div>
           {selectedItem ? (
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -617,12 +928,11 @@ export default function Editor2DClient() {
             </div>
           )}
 
-          {/* ── Room settings ── */}
+          {/* Room settings */}
           <div style={{ marginTop:20, paddingTop:16, borderTop:"1px solid rgba(255,255,255,0.4)",
             display:"flex", flexDirection:"column", gap:14 }}>
             <div style={{ fontSize:14, fontWeight:700, color:"#2d1f4e" }}>◫ Room</div>
 
-            {/* Width + Depth */}
             <div style={{ display:"flex", gap:8 }}>
               {[{key:"width",label:"W (m)"},{key:"height",label:"D (m)"}].map(d => (
                 <div key={d.key} style={{ flex:1 }}>
@@ -635,10 +945,8 @@ export default function Editor2DClient() {
               ))}
             </div>
 
-            {/* Wall colour */}
             <div>
               <div style={labelSt}>WALL COLOUR</div>
-              {/* preview swatch */}
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
                 <div style={{ width:32, height:22, borderRadius:6, background:roomConfig.wallColor,
                   border:"1px solid rgba(0,0,0,0.08)", flexShrink:0 }}/>
@@ -648,7 +956,6 @@ export default function Editor2DClient() {
                 onChange={c => setRoomConfig(r => ({ ...r, wallColor:c }))} />
             </div>
 
-            {/* Floor colour */}
             <div>
               <div style={labelSt}>FLOOR COLOUR</div>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
@@ -660,8 +967,7 @@ export default function Editor2DClient() {
                 onChange={c => setRoomConfig(r => ({ ...r, floorColor:c }))} />
             </div>
           </div>
-
-        </div>{/* end right panel */}
+        </div>
       </div>
     </div>
   );

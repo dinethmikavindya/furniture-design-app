@@ -87,13 +87,13 @@ function ProductCard({ product, index }) {
             transition={{ delay: 0.1 + index * 0.06, duration: 0.4 }}
             onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
             style={{
-                background: "#fff", borderRadius: 12, border: "1px solid #ede9e4",
+                background: "rgba(255,255,255,0.5)", backdropFilter: "blur(20px)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.7)",
                 padding: "16px 16px 18px", cursor: "pointer", transition: "box-shadow 0.2s, transform 0.2s",
                 boxShadow: hov ? "0 8px 28px rgba(0,0,0,0.09)" : "0 2px 8px rgba(0,0,0,0.04)",
                 transform: hov ? "translateY(-3px)" : "translateY(0)", minWidth: 0,
             }}
         >
-            <div style={{ background: "#f7f4f0", borderRadius: 8, height: 120, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <div style={{ background: "rgba(255,255,255,0.4)", borderRadius: 8, height: 120, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
                     <Image src={imgSrc} alt={product.name} fill
                         style={{ objectFit: "contain", padding: "12px", filter: colors[0] === "cream" ? "none" : "grayscale(80%) brightness(1.2)" }} />

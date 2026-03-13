@@ -120,7 +120,7 @@ function ProductCarousel({ selectedColor, setSelectedColor, colorOptions, catego
             transition={{ delay: 0.15, duration: 0.5 }}
             style={{
                 position: "relative",
-                background: "#f2f2f0",
+                background: "rgba(255,255,255,0.35)",
                 borderRadius: 28,
                 padding: "48px 80px 40px",
                 marginBottom: 36,
@@ -261,7 +261,7 @@ function RelatedProductCard({ product, index }) {
             onMouseEnter={() => setHov(true)}
             onMouseLeave={() => setHov(false)}
             style={{
-                background: "#fff",
+                background: "rgba(255,255,255,0.5)",
                 borderRadius: 14,
                 border: "1px solid #ede9e4",
                 padding: "16px",
@@ -273,7 +273,7 @@ function RelatedProductCard({ product, index }) {
             }}
         >
             <div style={{
-                background: "#f0ece8",
+                background: "rgba(255,255,255,0.35)",
                 borderRadius: 10,
                 height: 100,
                 marginBottom: 12,

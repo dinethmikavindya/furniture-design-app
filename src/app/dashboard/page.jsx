@@ -117,9 +117,9 @@ function TemplateCard({ template, index, delay, onUse }) {
 }
 
 const TIPS = [
-  { icon: "💡", title: "Lighting Basics", desc: "Layer ambient, task and accent lighting for depth.", glow: "rgba(167,139,250,0.35)", col: "#ede7f6" },
-  { icon: "🎨", title: "Color Theory", desc: "Build cohesive palettes from a single anchor hue.", glow: "rgba(52,211,153,0.35)", col: "#d1fae5" },
-  { icon: "📐", title: "Space Planning", desc: "Leave at least 90cm between furniture for good flow.", glow: "rgba(251,191,36,0.35)", col: "#fef9c3" },
+  { title: "Lighting Basics", desc: "Layer ambient, task and accent lighting for depth and mood in any room.", glow: "rgba(167,139,250,0.35)", col: "#ede7f6", accent: "#8b5cf6" },
+  { title: "Color Theory", desc: "Build cohesive palettes from a single anchor hue and use the 60-30-10 rule.", glow: "rgba(52,211,153,0.35)", col: "#d1fae5", accent: "#10b981" },
+  { title: "Space Planning", desc: "Leave at least 90cm between furniture pieces for comfortable movement.", glow: "rgba(251,191,36,0.35)", col: "#fef9c3", accent: "#f59e0b" },
 ];
 
 function TipCard({ tip, delay }) {
@@ -128,7 +128,9 @@ function TipCard({ tip, delay }) {
     <motion.div ref={ref} {...events} initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: delay / 1000, duration: 0.5, type: "spring", stiffness: 120, damping: 16 }}
       style={{ flex: 1, minWidth: 0, borderRadius: 22, padding: "18px", display: "flex", alignItems: "flex-start", gap: 14, position: "relative", rotateX, rotateY, scale: springScale, transformStyle: "preserve-3d", background: "rgba(255,255,255,0.22)", backdropFilter: "blur(32px) saturate(200%)", boxShadow: hov ? `0 18px 50px ${tip.glow}` : `0 6px 22px rgba(120,80,220,0.04)` }}>
       <GlassEdge hov={hov} radius={22} filterState={filterState} glowColor={tip.glow} />
-      <div style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: `linear-gradient(135deg,${tip.col},rgba(255,255,255,0.5))`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, position: "relative", zIndex: 7 }}>{tip.icon}</div>
+      <div style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: `linear-gradient(135deg,${tip.col},rgba(255,255,255,0.5))`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 7 }}>
+        <div style={{ width: 16, height: 16, borderRadius: "50%", background: tip.accent, opacity: 0.7 }} />
+      </div>
       <div style={{ position: "relative", zIndex: 7, paddingTop: 2 }}>
         <div style={{ fontSize: 13.5, fontWeight: 700, color: "#1e1040", marginBottom: 5 }}>{tip.title}</div>
         <div style={{ fontSize: 11.5, color: "#a99cc0", lineHeight: 1.6 }}>{tip.desc}</div>
@@ -329,6 +331,21 @@ export default function HomeScreen() {
             <GlassButton variant="secondary" onClick={() => router.push("/projects")}>Browse Projects</GlassButton>
             <GlassButton variant="primary" onClick={() => setShowModal(true)}><span style={{ fontSize: 18 }}>+</span> New Space</GlassButton>
           </div>
+        </motion.div>
+
+        {/* Stats row */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.5 }}
+          style={{ display: "flex", gap: 14, marginBottom: 30 }}>
+          {[
+            { label: "Total Spaces", value: projects.length || 0, accent: "#8b5cf6" },
+            { label: "Templates Available", value: templates.length || 0, accent: "#10b981" },
+            { label: "Last Active", value: "Today", accent: "#f59e0b" },
+          ].map((s, i) => (
+            <div key={i} style={{ flex: 1, padding: "16px 20px", borderRadius: 20, background: "rgba(255,255,255,0.3)", backdropFilter: "blur(24px)", border: "1.5px solid rgba(255,255,255,0.6)", boxShadow: "0 4px 16px rgba(120,80,220,0.06)" }}>
+              <div style={{ fontSize: 24, fontWeight: 700, color: s.accent, letterSpacing: "-0.5px" }}>{s.value}</div>
+              <div style={{ fontSize: 11, color: "#a99cc0", marginTop: 4, fontWeight: 500 }}>{s.label}</div>
+            </div>
+          ))}
         </motion.div>
 
         {/* Recent */}

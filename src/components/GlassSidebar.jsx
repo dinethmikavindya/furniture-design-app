@@ -107,19 +107,15 @@ export default function GlassSidebar() {
                   fontSize: 13.5,
                   position: "relative",
                 }}>
-                {/* Active indicator */}
                 {active && (
                   <span style={{ position: "absolute", left: 0, top: "15%", bottom: "15%", width: 3, borderRadius: "0 2px 2px 0", background: "#8b5cf6" }} />
                 )}
-                {/* Dot for collapsed active */}
                 {collapsed && active && (
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#8b5cf6", display: "block" }} />
                 )}
-                {/* Label */}
                 {!collapsed && (
                   <span style={{ letterSpacing: "-0.1px" }}>{item.label}</span>
                 )}
-                {/* Active dot at end */}
                 {active && !collapsed && (
                   <span style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: "#8b5cf6", flexShrink: 0 }} />
                 )}
@@ -131,20 +127,25 @@ export default function GlassSidebar() {
         {/* Divider */}
         <div style={{ margin: "0 14px", height: 1, background: "#f5f3ff" }} />
 
-        {/* User */}
+        {/* User — now uses real auth data */}
         <div style={{ padding: "10px 10px 14px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9, padding: collapsed ? "8px 0" : "9px 10px", borderRadius: 10, justifyContent: collapsed ? "center" : "flex-start", cursor: "pointer", transition: "background 0.15s" }}
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 9, padding: collapsed ? "8px 0" : "9px 10px", borderRadius: 10, justifyContent: collapsed ? "center" : "flex-start", cursor: "pointer", transition: "background 0.15s" }}
             onClick={() => router.push("/account")}
             onMouseEnter={e => e.currentTarget.style.background = "rgba(109,40,217,0.05)"}
-            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-            {/* Avatar */}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          >
+            {/* Avatar with real initials */}
             <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg,#8b5cf6,#6d28d9)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
               {getInitials(user?.name)}
             </div>
             {!collapsed && (
               <>
                 <div style={{ flex: 1, overflow: "hidden" }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "#0f0a1e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user?.name || "User"}</div>
+                  {/* Real user name from auth context */}
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "#0f0a1e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {user?.name || user?.email?.split("@")[0] || "User"}
+                  </div>
                   <div style={{ fontSize: 10.5, color: "#94a3b8", fontWeight: 400 }}>Account</div>
                 </div>
                 <button className="msb-logout" onClick={e => { e.stopPropagation(); handleLogout(); }} style={{ width: 26, height: 26, flexShrink: 0 }} title="Sign out">
