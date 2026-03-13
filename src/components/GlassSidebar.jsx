@@ -1,459 +1,162 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 
-/* ══════════════════════════════════════════
-   NAV CONFIG — one place, all pages use this
-══════════════════════════════════════════ */
 const NAV = [
-  { icon: "⌂", label: "Home",      path: "/dashboard" },
-  { icon: "▦", label: "Projects",  path: "/projects"  },
-  { icon: "✦", label: "Editor",    path: "/editor"    },
-  { icon: "⊡", label: "Shop",      path: "/shop"      },
-  { icon: "◈", label: "Materials", path: "/materials" },
-  { icon: "⚙", label: "Settings",  path: "/settings"  },
+  { label: "Home",      path: "/dashboard" },
+  { label: "Projects",  path: "/projects"  },
+  { label: "Editor",    path: "/editor"    },
+  { label: "Shop",      path: "/shop"      },
+  { label: "Materials", path: "/materials" },
+  { label: "Settings",  path: "/settings"  },
 ];
 
-/* ══════════════════════════════════════════
-   TOGGLE BUTTON — the open/close arrow
-   sits on the right edge of the sidebar
-══════════════════════════════════════════ */
-function ToggleButton({ isOpen, onClick }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <motion.button
-      onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      whileHover={{ scale: 1.12 }}
-      whileTap={{ scale: 0.92 }}
-      style={{
-        position: "absolute",
-        top: 28,
-        right: -16,          /* peeks out past the sidebar edge */
-        zIndex: 50,
-        width: 32,
-        height: 32,
-        borderRadius: "50%",
-        border: "none",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 15,
-        background: hov
-          ? "rgba(255,255,255,0.95)"
-          : "rgba(255,255,255,0.80)",
-        backdropFilter: "blur(20px) saturate(180%)",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        boxShadow: hov
-          ? "0 6px 22px rgba(139,92,246,0.28), 0 0 0 1.5px rgba(139,92,246,0.40)"
-          : "0 4px 16px rgba(120,80,220,0.14), 0 0 0 1px rgba(255,255,255,0.9)",
-        color: "#8b5cf6",
-        transition: "background 0.2s, box-shadow 0.2s",
-      }}
-    >
-      {/* Arrow rotates to show direction */}
-      <motion.span
-        animate={{ rotate: isOpen ? 0 : 180 }}
-        transition={{ type: "spring", stiffness: 260, damping: 22 }}
-        style={{ display: "flex", alignItems: "center", lineHeight: 1, marginTop: -1 }}
-      >
-        ‹
-      </motion.span>
-    </motion.button>
-  );
-}
-
-/* ══════════════════════════════════════════
-   GLASS NAV ITEM
-══════════════════════════════════════════ */
-function GlassNavItem({ item, isActive, onClick, index, isOpen }) {
-  const [hov, setHov] = useState(false);
-
-  return (
-    <motion.button
-      onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      initial={{ x: -22, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ delay: index * 0.05 + 0.1, type: "spring", stiffness: 130, damping: 18 }}
-      whileHover={{ x: isOpen ? 5 : 0, scale: 1.03 }}
-      whileTap={{ scale: 0.94 }}
-      title={!isOpen ? item.label : undefined}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: isOpen ? "flex-start" : "center",
-        gap: 11,
-        padding: isOpen ? "11px 16px" : "11px 0",
-        borderRadius: 50,
-        border: "none",
-        cursor: "pointer",
-        width: "100%",
-        fontFamily: "'Afacad', sans-serif",
-        fontSize: 14,
-        fontWeight: isActive ? 700 : 500,
-        color: isActive ? "#4c1d95" : hov ? "#5c3d8f" : "#8878aa",
-        background: isActive
-          ? "rgba(255,255,255,0.46)"
-          : hov ? "rgba(255,255,255,0.26)" : "transparent",
-        backdropFilter: isActive || hov ? "blur(28px) saturate(180%)" : "none",
-        WebkitBackdropFilter: isActive || hov ? "blur(28px) saturate(180%)" : "none",
-        boxShadow: isActive
-          ? "0 4px 22px rgba(139,92,246,0.14), 0 0 0 0.5px rgba(255,255,255,0.5), inset 0 1px 8px rgba(255,255,255,0.35)"
-          : hov
-          ? "0 2px 16px rgba(139,92,246,0.07), 0 0 0 0.5px rgba(255,255,255,0.32)"
-          : "none",
-        transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Glass shimmer border */}
-      {(isActive || hov) && (
-        <div style={{
-          position: "absolute", inset: 0, borderRadius: 50, pointerEvents: "none",
-          border: "1px solid transparent",
-          backgroundImage: `linear-gradient(135deg,
-            rgba(255,255,255,0.75) 0%, rgba(180,210,255,0.35) 20%,
-            rgba(255,255,255,0.05) 45%, rgba(255,200,240,0.12) 65%,
-            rgba(200,230,255,0.40) 90%, rgba(255,255,255,0.65) 100%)`,
-          backgroundOrigin: "border-box",
-          WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)",
-          WebkitMaskComposite: "destination-out",
-          maskComposite: "exclude",
-        }} />
-      )}
-
-      {/* Icon — always visible */}
-      <motion.span
-        animate={{ scale: isActive ? 1.1 : 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 18 }}
-        style={{
-          fontSize: 16,
-          filter: isActive ? "drop-shadow(0 2px 6px rgba(139,92,246,0.48))" : "none",
-          position: "relative", zIndex: 2,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          width: 22, flexShrink: 0,
-        }}
-      >
-        {item.icon}
-      </motion.span>
-
-      {/* Label — slides away when sidebar closes */}
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.span
-            key="label"
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto" }}
-            exit={{ opacity: 0, width: 0 }}
-            transition={{ duration: 0.18 }}
-            style={{ position: "relative", zIndex: 2, overflow: "hidden", whiteSpace: "nowrap" }}
-          >
-            {item.label}
-          </motion.span>
-        )}
-      </AnimatePresence>
-
-      {/* Active dot */}
-      {isActive && isOpen && (
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
-          transition={{ duration: 2.2, repeat: Infinity }}
-          style={{
-            marginLeft: "auto", width: 6, height: 6, borderRadius: "50%",
-            background: "linear-gradient(135deg,#8b5cf6,#a78bfa)",
-            boxShadow: "0 0 8px rgba(139,92,246,0.7)",
-            position: "relative", zIndex: 2, flexShrink: 0,
-          }}
-        />
-      )}
-    </motion.button>
-  );
-}
-
-/* ══════════════════════════════════════════
-   GLASS USER CARD
-══════════════════════════════════════════ */
-function GlassUserCard({ isOpen }) {
-  const [hov, setHov] = useState(false);
+export default function GlassSidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const router   = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useAuth();
-  const router = useRouter();
 
-  const handleLogout = async (e) => {
-    e.stopPropagation(); // prevent card click
-    await logout();
-    router.push("/login");
-  };
-
-  const handleNavigate = () => {
-    router.push("/account");
-  };
+  const isActive = (path) =>
+    path === "/dashboard"
+      ? pathname === "/dashboard"
+      : pathname.startsWith(path);
 
   const getInitials = (name) => {
-    if (!name) return "US";
+    if (!name) return "U";
     const p = name.trim().split(" ");
-    if (p.length >= 2) return (p[0][0] + p[1][0]).toUpperCase();
-    if (p[0].length >= 2) return (p[0][0] + p[0][1]).toUpperCase();
-    return p[0][0].toUpperCase();
+    return p.length >= 2 ? (p[0][0] + p[1][0]).toUpperCase() : p[0].slice(0,2).toUpperCase();
   };
 
+  const handleLogout = async () => { await logout(); router.push("/login"); };
+
   return (
-    <motion.div
-      onClick={handleNavigate}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.97 }}
-      style={{
-        margin: isOpen ? "12px 12px 0" : "12px 6px 0",
-        padding: isOpen ? "12px 14px" : "10px",
-        borderRadius: 50,
-        background: hov ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.28)",
-        backdropFilter: "blur(28px) saturate(180%)",
-        WebkitBackdropFilter: "blur(28px) saturate(180%)",
-        boxShadow: hov
-          ? "0 12px 36px rgba(120,80,220,0.12), 0 0 0 1px rgba(255,255,255,0.55)"
-          : "0 6px 24px rgba(120,80,220,0.06), 0 0 0 0.5px rgba(255,255,255,0.28)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: isOpen ? "space-between" : "center",
-        cursor: "pointer",
-        position: "relative",
-        overflow: "hidden",
-        transition: "all 0.3s cubic-bezier(0.22,1,0.36,1)",
-      }}
-    >
-      {/* Avatar */}
-      <div
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        .msb { font-family: 'Inter', sans-serif; }
+        .msb-nav-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; width: 100%; text-align: left; transition: all 0.15s ease; border-radius: 10px; }
+        .msb-nav-btn:hover { background: rgba(109,40,217,0.07); }
+        .msb-nav-btn.active { background: rgba(109,40,217,0.10); }
+        .msb-collapse-btn { background: none; border: 1px solid rgba(109,40,217,0.15); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .msb-collapse-btn:hover { background: rgba(109,40,217,0.08); }
+        .msb-logout { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.15s; color: #94a3b8; }
+        .msb-logout:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+      `}</style>
+
+      <motion.aside
+        className="msb"
+        animate={{ width: collapsed ? 64 : 220 }}
+        transition={{ type: "spring", stiffness: 320, damping: 32 }}
         style={{
-          width: 34,
-          height: 34,
-          borderRadius: "50%",
           flexShrink: 0,
-          background: "linear-gradient(135deg,#8b5cf6,#6d28d9)",
+          height: "calc(100vh - 24px)",
+          margin: "12px 0 12px 12px",
+          borderRadius: 20,
+          background: "#ffffff",
+          borderRight: "1px solid #f1f0ff",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(109,40,217,0.06)",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          fontSize: 11.5,
-          fontWeight: 700,
-          boxShadow:
-            "0 4px 16px rgba(109,40,217,0.38), 0 0 0 2px rgba(255,255,255,0.55)",
+          flexDirection: "column",
+          overflow: "hidden",
+          position: "relative",
+          zIndex: 30,
         }}
       >
-        {getInitials(user?.name)}
-      </div>
+        {/* Header */}
+        <div style={{ padding: "18px 14px 14px", borderBottom: "1px solid #f5f3ff", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <AnimatePresence initial={false}>
+            {!collapsed && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
+                style={{ overflow: "hidden", whiteSpace: "nowrap" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#0f0a1e", letterSpacing: "-0.4px" }}>
+                  Mauve Studio<span style={{ color: "#8b5cf6" }}>.</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <button className="msb-collapse-btn"
+            onClick={() => setCollapsed(c => !c)}
+            style={{ width: 28, height: 28, flexShrink: 0, marginLeft: collapsed ? "auto" : 0, marginRight: collapsed ? "auto" : 0 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2.5" strokeLinecap="round">
+              <path d={collapsed ? "M9 18l6-6-6-6" : "M15 18l-6-6 6-6"} />
+            </svg>
+          </button>
+        </div>
 
-      {/* Name */}
-      {isOpen && (
-        <div
-          style={{
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            marginLeft: 10,
-            flex: 1,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#1e1040",
-              lineHeight: 1.3,
-            }}
-          >
-            {user?.name || "User"}
-          </div>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: "#9b93b8",
-            }}
-          >
-            Account
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: "10px 10px", display: "flex", flexDirection: "column", gap: 1, overflowY: "auto" }}>
+          {!collapsed && (
+            <div style={{ fontSize: 10, fontWeight: 600, color: "#c4b5fd", textTransform: "uppercase", letterSpacing: "0.8px", padding: "6px 10px 8px" }}>Menu</div>
+          )}
+          {NAV.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <button key={item.label}
+                className={`msb-nav-btn${active ? " active" : ""}`}
+                onClick={() => router.push(item.path)}
+                title={collapsed ? item.label : undefined}
+                style={{
+                  padding: collapsed ? "11px 0" : "10px 12px",
+                  justifyContent: collapsed ? "center" : "flex-start",
+                  gap: 10,
+                  color: active ? "#6d28d9" : "#64748b",
+                  fontWeight: active ? 600 : 400,
+                  fontSize: 13.5,
+                  position: "relative",
+                }}>
+                {/* Active indicator */}
+                {active && (
+                  <span style={{ position: "absolute", left: 0, top: "15%", bottom: "15%", width: 3, borderRadius: "0 2px 2px 0", background: "#8b5cf6" }} />
+                )}
+                {/* Dot for collapsed active */}
+                {collapsed && active && (
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#8b5cf6", display: "block" }} />
+                )}
+                {/* Label */}
+                {!collapsed && (
+                  <span style={{ letterSpacing: "-0.1px" }}>{item.label}</span>
+                )}
+                {/* Active dot at end */}
+                {active && !collapsed && (
+                  <span style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: "#8b5cf6", flexShrink: 0 }} />
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Divider */}
+        <div style={{ margin: "0 14px", height: 1, background: "#f5f3ff" }} />
+
+        {/* User */}
+        <div style={{ padding: "10px 10px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, padding: collapsed ? "8px 0" : "9px 10px", borderRadius: 10, justifyContent: collapsed ? "center" : "flex-start", cursor: "pointer", transition: "background 0.15s" }}
+            onClick={() => router.push("/account")}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(109,40,217,0.05)"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+            {/* Avatar */}
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg,#8b5cf6,#6d28d9)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+              {getInitials(user?.name)}
+            </div>
+            {!collapsed && (
+              <>
+                <div style={{ flex: 1, overflow: "hidden" }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "#0f0a1e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user?.name || "User"}</div>
+                  <div style={{ fontSize: 10.5, color: "#94a3b8", fontWeight: 400 }}>Account</div>
+                </div>
+                <button className="msb-logout" onClick={e => { e.stopPropagation(); handleLogout(); }} style={{ width: 26, height: 26, flexShrink: 0 }} title="Sign out">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                </button>
+              </>
+            )}
           </div>
         </div>
-      )}
-
-      {/* Logout Button */}
-      {isOpen && (
-        <button
-          onClick={handleLogout}
-          title="Sign out"
-          style={{
-            background: hov ? "rgba(139,92,246,0.1)" : "none",
-            border: "none",
-            cursor: "pointer",
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            fontSize: 13,
-            color: hov ? "#8b5cf6" : "#b8aad0",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          →
-        </button>
-      )}
-    </motion.div>
-  );
-}
-
-
-/* ══════════════════════════════════════════
-   MAIN EXPORT
-   Drop this into any page like:
-     import GlassSidebar from "@/components/GlassSidebar";
-     ...
-     <GlassSidebar />     ← zero props needed!
-══════════════════════════════════════════ */
-export default function GlassSidebar() {
-  const [isOpen, setIsOpen] = useState(true);
-  const [hov,    setHov]    = useState(false);
-  const router   = useRouter();
-  const pathname = usePathname(); // knows which page you're on automatically
-
-  const activeLabel = NAV.find((n) => pathname.startsWith(n.path))?.label ?? "Home";
-
-  return (
-    <motion.aside
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      animate={{ width: isOpen ? 225 : 72 }}
-      transition={{ type: "spring", stiffness: 260, damping: 28, mass: 0.9 }}
-      style={{
-        minWidth: 0,
-        flexShrink: 0,
-        zIndex: 20,
-        position: "relative",   /* so toggle button can be positioned */
-        display: "flex",
-        flexDirection: "column",
-        padding: "28px 0 20px",
-        margin: "14px 0 14px 14px",
-        borderRadius: 32,
-        height: "calc(100vh - 28px)",
-        background: hov ? "rgba(255,255,255,0.30)" : "rgba(255,255,255,0.22)",
-        backdropFilter: "blur(48px) saturate(220%) brightness(1.06)",
-        WebkitBackdropFilter: "blur(48px) saturate(220%) brightness(1.06)",
-        boxShadow: hov
-          ? "0 20px 60px rgba(120,80,220,0.12), 0 0 0 0.5px rgba(255,255,255,0.38)"
-          : "0 12px 52px rgba(120,80,220,0.07), 0 0 0 0.5px rgba(255,255,255,0.24)",
-        transition: "background 0.35s ease, box-shadow 0.4s cubic-bezier(0.22,1,0.36,1)",
-        overflow: "visible",   /* IMPORTANT: lets toggle button poke out */
-      }}
-    >
-      {/* Prismatic border */}
-      <motion.div
-        animate={{ opacity: hov ? 1 : 0.45 }}
-        transition={{ duration: 0.35 }}
-        style={{
-          position: "absolute", inset: 0, borderRadius: 32, pointerEvents: "none",
-          border: "1.5px solid transparent",
-          backgroundImage: `linear-gradient(180deg,
-            rgba(255,255,255,0.70) 0%, rgba(180,210,255,0.30) 15%,
-            rgba(255,255,255,0.06) 35%, rgba(255,200,240,0.08) 55%,
-            rgba(255,255,255,0.04) 70%, rgba(200,230,255,0.25) 88%,
-            rgba(255,255,255,0.55) 100%)`,
-          backgroundOrigin: "border-box",
-          WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)",
-          WebkitMaskComposite: "destination-out",
-          maskComposite: "exclude",
-          zIndex: 10,
-        }}
-      />
-
-      {/* ── Toggle button ── */}
-      <ToggleButton isOpen={isOpen} onClick={() => setIsOpen((v) => !v)} />
-
-      {/* ── LOGO — always visible, shrinks to "M" when closed ── */}
-      <div style={{
-        padding: isOpen ? "0 24px 20px" : "0 0 20px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: isOpen ? "flex-start" : "center",
-        position: "relative", zIndex: 2,
-        overflow: "hidden",
-        transition: "padding 0.3s cubic-bezier(0.22,1,0.36,1)",
-      }}>
-        <AnimatePresence initial={false}>
-          {isOpen && (
-            <motion.span
-              key="logotext"
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: "auto" }}
-              exit={{ opacity: 0, width: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                fontSize: 21, fontWeight: 700, color: "#1e1040",
-                letterSpacing: "-0.5px", whiteSpace: "nowrap", overflow: "hidden",
-              }}
-            >
-              Mauve Studio
-            </motion.span>
-          )}
-        </AnimatePresence>
-
-        <motion.span
-          animate={{ fontSize: isOpen ? 21 : 24 }}
-          transition={{ type: "spring", stiffness: 260, damping: 24 }}
-          style={{
-            fontWeight: 700,
-            background: "linear-gradient(90deg,#8b5cf6,#60a5fa,#ec4899,#8b5cf6)",
-            backgroundSize: "300% auto",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            animation: "shimmer 2.8s linear infinite",
-            flexShrink: 0,
-          }}
-        >
-          {isOpen ? "." : "M"}
-        </motion.span>
-      </div>
-
-      {/* Divider */}
-      <div style={{
-        margin: "0 16px 12px", height: 1,
-        background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.18), transparent)",
-        position: "relative", zIndex: 2,
-      }} />
-
-      {/* ── NAV LINKS ── */}
-      <nav style={{
-        flex: 1, display: "flex", flexDirection: "column",
-        gap: 2,
-        padding: isOpen ? "0 10px" : "0 8px",
-        position: "relative", zIndex: 2,
-        overflowY: "auto", overflowX: "hidden",
-        transition: "padding 0.3s",
-      }}>
-        {NAV.map((item, i) => (
-          <GlassNavItem
-            key={item.label}
-            item={item}
-            isActive={activeLabel === item.label}
-            onClick={() => router.push(item.path)}
-            index={i}
-            isOpen={isOpen}
-          />
-        ))}
-      </nav>
-
-      {/* ── USER CARD ── */}
-      <div style={{ position: "relative", zIndex: 2 }}>
-        <GlassUserCard isOpen={isOpen} />
-      </div>
-
-    </motion.aside>
+      </motion.aside>
+    </>
   );
 }

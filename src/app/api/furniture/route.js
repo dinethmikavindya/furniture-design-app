@@ -1,64 +1,22 @@
-import { NextResponse } from 'next/server';
-import pkg from 'pg';
-const { Pool } = pkg;
+import { Pool } from 'pg';
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-});
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-/**
- * GET all furniture from catalog
- * GET /api/furniture?limit=50&offset=0&category=chairs
- */
 export async function GET(request) {
-    try {
-        const { searchParams } = new URL(request.url);
-        const limit = parseInt(searchParams.get('limit')) || 50;
-        const offset = parseInt(searchParams.get('offset')) || 0;
-        const category = searchParams.get('category');
-
-        let query = 'SELECT * FROM furniture_catalog';
-        const values = [];
-        let paramCount = 1;
-
-        // Filter by category if provided
-        if (category) {
-            query += ` WHERE category = $${paramCount}`;
-            values.push(category);
-            paramCount++;
-        }
-
-        // Add ordering and pagination
-        query += ` ORDER BY name ASC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-        values.push(limit, offset);
-
-        const result = await pool.query(query, values);
-
-        // Get total count
-        let countQuery = 'SELECT COUNT(*) FROM furniture_catalog';
-        const countValues = [];
-        if (category) {
-            countQuery += ' WHERE category = $1';
-            countValues.push(category);
-        }
-        const countResult = await pool.query(countQuery, countValues);
-        const total = parseInt(countResult.rows[0].count);
-
-        return NextResponse.json({
-            furniture: result.rows,
-            pagination: {
-                total,
-                limit,
-                offset,
-                hasMore: offset + limit < total
-            }
-        });
-
-    } catch (error) {
-        console.error('Furniture GET Error:', error);
-        return NextResponse.json(
-            { error: 'Failed to get furniture', details: error.message },
-            { status: 500 }
-        );
+  const { searchParams } = new URL(request.url);
+  const category = searchParams.get('category');
+  
+  try {
+    let query = 'SELECT * FROM furniture_catalog';
+    let values = [];
+    if (category && category !== 'All') {
+      query += ' WHERE category = $1';
+      values = [category];
     }
+    query += ' ORDER BY name';
+    const { rows } = await pool.query(query, values);
+    return Response.json({ furniture: rows });
+  } catch (e) {
+    return Response.json({ error: e.message }, { status: 500 });
+  }
 }

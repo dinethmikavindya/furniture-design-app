@@ -555,6 +555,35 @@ export default function SettingsPage() {
 
   const userId = "f9cb7339-fd63-43ea-933d-de84aa0cd524";
 
+  const applyTheme = (t) => {
+    const root = document.documentElement;
+    if (t === "dark") {
+      root.style.setProperty("--bg", "#0f0f1a");
+      root.style.setProperty("--bg2", "#1a1a2e");
+      root.style.setProperty("--surface", "rgba(30,30,50,0.8)");
+      root.style.setProperty("--text", "#e8e0ff");
+      root.style.setProperty("--text2", "#9b93b8");
+      root.style.setProperty("--border", "rgba(139,92,246,0.2)");
+      document.body.style.background = "linear-gradient(135deg,#0f0f1a,#1a1030,#0f1a1a)";
+      document.body.style.color = "#e8e0ff";
+    } else {
+      root.style.setProperty("--bg", "#f0eaff");
+      root.style.setProperty("--bg2", "#eaf0ff");
+      root.style.setProperty("--surface", "rgba(255,255,255,0.22)");
+      root.style.setProperty("--text", "#2d1f4e");
+      root.style.setProperty("--text2", "#9b93b8");
+      root.style.setProperty("--border", "rgba(255,255,255,0.65)");
+      document.body.style.background = "linear-gradient(135deg,#f0eaff,#eaf0ff,#f5eaff)";
+      document.body.style.color = "#2d1f4e";
+    }
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem("mauve_theme") || "light";
+    setTheme(saved);
+    applyTheme(saved);
+  }, []);
+
   const handleNavigate = (path, label) => {
     if (label) setActive(label);
   };
@@ -589,6 +618,8 @@ export default function SettingsPage() {
     } catch {}
     setTheme(newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("mauve_theme", newTheme);
+    applyTheme(newTheme);
     showMessage("Theme updated! ✨");
   };
 
