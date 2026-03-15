@@ -62,12 +62,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(data.user);
       } else {
         // Token invalid, remove it
-        localStorage.removeItem('authToken');
+        localStorage.removeItem("authToken"); document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
         setToken(null);
       }
     } catch (error) {
       console.error('Failed to fetch user info:', error);
-      localStorage.removeItem('authToken');
+      localStorage.removeItem("authToken"); document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
       setToken(null);
     } finally {
       setIsLoading(false);
@@ -153,7 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('authToken');
+    localStorage.removeItem("authToken"); document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
   };
 
   const value: AuthContextType = {

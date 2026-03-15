@@ -14,7 +14,7 @@ export default function SignUpForm() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
 
-  const { signup, isLoading } = useAuth();
+  const { signup, login, isLoading } = useAuth();
   const router = useRouter();
 
   /* ── ALL ORIGINAL LOGIC — UNTOUCHED ── */
@@ -42,7 +42,7 @@ export default function SignUpForm() {
     try {
       const data = await signupUser(name, email, password);
       if (data.success) {
-        await signup(email, password, name);
+        await login(email, password);
         setEmail('');
         setPassword('');
         setConfirmPassword('');

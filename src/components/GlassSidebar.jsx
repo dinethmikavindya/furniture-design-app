@@ -30,7 +30,7 @@ export default function GlassSidebar() {
     return p.length >= 2 ? (p[0][0] + p[1][0]).toUpperCase() : p[0].slice(0,2).toUpperCase();
   };
 
-  const handleLogout = async () => { await logout(); router.push("/login"); };
+  const handleLogout = async () => { try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch(e) {} logout(); window.location.href = '/login'; };
 
   return (
     <>
