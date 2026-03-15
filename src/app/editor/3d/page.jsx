@@ -294,7 +294,7 @@ function SceneContent({ furniture, roomConfig, selectedId, onSelect, onMove, isD
 
   return (
     <>
-      <ambientLight intensity={sun.ambient} color={sun.isNight ? "#1a2050" : "#ffffff"} />
+      <ambientLight intensity={sun.ambient} color={sun.isNight ? "#1a2050" : "#fff8f0"} />
       <directionalLight
         position={[sun.sunX, sun.sunY, sun.sunZ]}
         intensity={sun.dirIntensity}
@@ -302,7 +302,8 @@ function SceneContent({ furniture, roomConfig, selectedId, onSelect, onMove, isD
         castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048}
         shadow-camera-left={-15} shadow-camera-right={15} shadow-camera-top={15} shadow-camera-bottom={-15} shadow-bias={-0.001}
       />
-      <directionalLight position={[-maxDim * 0.5, maxDim * 0.3, maxDim * 0.5]} intensity={sun.ambient * 0.25} color="#c8d8ff" />
+      <directionalLight position={[-maxDim * 0.5, maxDim * 0.3, maxDim * 0.5]} intensity={sun.ambient * 0.25} color="#ffd4a3" />
+      <pointLight position={[0, WALL_H * 0.9, 0]} intensity={0.6} color="#ffeedd" distance={15} />
       <pointLight position={[0, WALL_H * 0.85, 0]} intensity={sun.isNight ? 0.8 : 0.3} color={sun.isNight ? "#ffd4a0" : "#fff8f0"} distance={maxDim * 4} />
       {/* Visible sun/moon sphere in the sky */}
       <mesh position={[sun.sunX, sun.sunY, sun.sunZ]}>
@@ -371,7 +372,7 @@ export default function Editor3D() {
   const router = useRouter();
   const orbitRef = useRef();
   const [furniture, setFurniture] = useState([]);
-  const [roomConfig, setRoomConfig] = useState({ name: "My Space", width: 5, height: 4, wallColor: "#e8e0f0", floorColor: "#f5f0e8" });
+  const [roomConfig, setRoomConfig] = useState({ name: "My Space", width: 5, height: 4, wallColor: "#f5efe6", floorColor: "#d4c5a9" });
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
   const [draggingId, setDraggingId] = useState(null);
@@ -516,7 +517,7 @@ export default function Editor3D() {
           </div>
         ) : (
           <Canvas shadows
-            gl={{ antialias: true, preserveDrawingBuffer: true, toneMapping: THREE.LinearToneMapping, toneMappingExposure: 1.0, outputColorSpace: THREE.SRGBColorSpace }}
+            gl={{ antialias: true, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2, outputColorSpace: THREE.SRGBColorSpace }}
             onPointerMissed={() => { if (!draggingId) setSelectedId(null); }}
           >
             <Suspense fallback={null}>
