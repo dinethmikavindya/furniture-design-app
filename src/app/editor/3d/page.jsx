@@ -380,6 +380,42 @@ export default function Editor3D() {
   const [mounted, setMounted] = useState(false);
   const [topDown, setTopDown] = useState(false);
   const [timeOfDay, setTimeOfDay] = useState(12);
+  const [showRoomPresets, setShowRoomPresets] = useState(false);
+  const [showFurniturePanel, setShowFurniturePanel] = useState(false);
+  const ROOM_PRESETS = [
+    { name: "Living Room",  width: 6, height: 5, wallColor: "#f5efe6", floorColor: "#d4c5a9" },
+    { name: "Bedroom",      width: 5, height: 4, wallColor: "#e8e0f0", floorColor: "#c8b89a" },
+    { name: "Kitchen",      width: 4, height: 4, wallColor: "#e8f0e8", floorColor: "#c8c8b8" },
+    { name: "Office",       width: 5, height: 5, wallColor: "#e8eaf0", floorColor: "#b8c0c8" },
+    { name: "Kids Room",    width: 4, height: 4, wallColor: "#f0e8f8", floorColor: "#d4c8e0" },
+    { name: "Dining Room",  width: 5, height: 4, wallColor: "#f5f0e8", floorColor: "#c8b89a" },
+  ];
+  const FURNITURE_CATALOG_3D = {
+    Sofas: [
+      { type:"sofa-2", label:"2-Seat Sofa", w:160, h:80, color:"#c4b5fd" },
+      { type:"sofa-3", label:"3-Seat Sofa", w:220, h:85, color:"#a78bfa" },
+      { type:"sofa-l", label:"L-Shape Sofa", w:200, h:160, color:"#8b5cf6" },
+      { type:"sofa-1", label:"Armchair", w:90, h:85, color:"#ddd6fe" },
+    ],
+    Beds: [
+      { type:"bed-s", label:"Single Bed", w:100, h:200, color:"#bfdbfe" },
+      { type:"bed-d", label:"Double Bed", w:140, h:200, color:"#93c5fd" },
+      { type:"bed-k", label:"King Bed", w:180, h:210, color:"#60a5fa" },
+    ],
+    Tables: [
+      { type:"table-c", label:"Coffee Table", w:120, h:60, color:"#fde68a" },
+      { type:"table-d", label:"Dining Table", w:160, h:90, color:"#fcd34d" },
+      { type:"table-s", label:"Side Table", w:50, h:50, color:"#fef3c7" },
+      { type:"desk", label:"Desk", w:120, h:60, color:"#e0e7ff" },
+    ],
+    Storage: [
+      { type:"ward", label:"Wardrobe", w:120, h:55, color:"#d1d5db" },
+      { type:"book", label:"Bookcase", w:80, h:30, color:"#d1d5db" },
+      { type:"cabinet-tv", label:"TV Cabinet", w:160, h:45, color:"#d1d5db" },
+    ],
+  };
+  let _uid3d = 1;
+  const uid3d = () => "3d_" + _uid3d++;
 
   useEffect(() => {
     setMounted(true);
@@ -429,6 +465,51 @@ export default function Editor3D() {
     } catch (e) { console.error(e); }
   };
 
+  const handlePDFExport = () => {
+    const canvas = document.querySelector("canvas");
+    if (!canvas) return;
+    try {
+      const imgData = canvas.toDataURL("image/png");
+      const w = 297, h = 210; // A4 landscape mm
+      const html = `<!DOCTYPE html><html><head><style>
+        body{margin:0;padding:0;font-family:Arial,sans-serif;background:#f0eaff;}
+        .page{width:${w}mm;min-height:${h}mm;padding:12mm;box-sizing:border-box;}
+        h1{color:#2d1f4e;font-size:22pt;margin:0 0 4mm;}
+        .sub{color:#9b93b8;font-size:10pt;margin:0 0 8mm;}
+        img{width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.15);}
+        .info{display:flex;gap:8mm;margin-top:6mm;}
+        .chip{background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);
+          border-radius:20px;padding:2mm 5mm;font-size:9pt;color:#6d28d9;}
+      </style></head><body><div class="page">
+        <h1>Mauve Studio — Room Design</h1>
+        <div class="sub">Generated on ${new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})}</div>
+        <img src="${imgData}" />
+        <div class="info">
+          <span class="chip">Room: ${roomConfig.width}x${roomConfig.height}m</span>
+          <span class="chip">Items: ${furniture.length}</span>
+          <span class="chip">Style: ${roomConfig.name || "My Space"}</span>
+        </div>
+      </div></body></html>`;
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url; link.download = "mauve-room-report.html";
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch(e) { console.error(e); }
+  };
+  const addFurniture3D = (item) => {
+    const roomW = roomConfig.width * 80;
+    const roomH = roomConfig.height * 80;
+    const newItem = {
+      id: uid3d(), type: item.type, label: item.label,
+      x: roomW/2 - item.w/2, y: roomH/2 - item.h/2,
+      w: item.w, h: item.h, color: item.color, rotation: 0,
+    };
+    const updated = [...furniture, newItem];
+    setFurniture(updated);
+    try { localStorage.setItem("mauve_furniture", JSON.stringify(updated)); } catch(e) {}
+  };
   const selectedItem = furniture.find(f => f.id === selectedId);
   const sunParams = getSunParams(timeOfDay);
   const isEvening = timeOfDay < 7 || timeOfDay > 19;
@@ -483,6 +564,29 @@ export default function Editor3D() {
             }}>
             {screenshotMsg ? "Saved!" : "Screenshot"}
           </motion.button>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handlePDFExport}
+            style={{ padding: "7px 16px", borderRadius: 50, border: "1px solid rgba(139,92,246,0.3)",
+              fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
+              color: isEvening ? "#c4b5fd" : "#6d28d9", cursor: "pointer",
+              background: isEvening ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)" }}>
+            Export PDF
+          </motion.button>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowRoomPresets(v => !v)}
+            style={{ padding: "7px 16px", borderRadius: 50,
+              border: showRoomPresets ? "1px solid #8b5cf6" : "1px solid rgba(139,92,246,0.3)",
+              fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
+              color: showRoomPresets ? "#fff" : (isEvening ? "#c4b5fd" : "#6d28d9"), cursor: "pointer",
+              background: showRoomPresets ? "linear-gradient(135deg,#8b5cf6,#6d28d9)" : (isEvening ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)") }}>
+            Room Type
+          </motion.button>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowFurniturePanel(v => !v)}
+            style={{ padding: "7px 16px", borderRadius: 50,
+              border: showFurniturePanel ? "1px solid #8b5cf6" : "1px solid rgba(139,92,246,0.3)",
+              fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
+              color: showFurniturePanel ? "#fff" : (isEvening ? "#c4b5fd" : "#6d28d9"), cursor: "pointer",
+              background: showFurniturePanel ? "linear-gradient(135deg,#8b5cf6,#6d28d9)" : (isEvening ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)") }}>
+            + Furniture
+          </motion.button>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setTopDown(v => !v)}
             style={{
               padding: "7px 16px", borderRadius: 50,
@@ -507,7 +611,7 @@ export default function Editor3D() {
         </div>
       </motion.header>
 
-      <div style={{ flex: 1, position: "relative", zIndex: 10 }}>
+      <div style={{ flex: 1, position: "relative", zIndex: 10, overflow: "visible" }}>
         {loading ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: 14, color: "#8b5cf6", fontWeight: 600 }}>
             <div style={{ textAlign: "center" }}>
@@ -534,6 +638,57 @@ export default function Editor3D() {
           </Canvas>
         )}
 
+        <AnimatePresence>
+          {showRoomPresets && (
+            <motion.div key="presets" initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}
+              style={{ position:"absolute", top:16, left:"50%", transform:"translateX(-50%)", zIndex:25,
+                padding:"16px", borderRadius:18, backdropFilter:"blur(24px)",
+                background: isEvening ? "rgba(20,10,50,0.85)" : "rgba(255,255,255,0.9)",
+                border: isEvening ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.8)",
+                boxShadow:"0 8px 32px rgba(120,80,220,0.2)", display:"flex", gap:10, flexWrap:"wrap", maxWidth:480 }}>
+              <div style={{ width:"100%", fontSize:11, fontWeight:700, color: isEvening?"#9b8db8":"#9b93b8", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:4 }}>Choose Room Type</div>
+              {ROOM_PRESETS.map(preset => (
+                <motion.button key={preset.name} whileHover={{ scale:1.05 }} whileTap={{ scale:0.95 }}
+                  onClick={() => { setRoomConfig(r => ({ ...r, ...preset, name: preset.name })); localStorage.setItem("mauve_room", JSON.stringify({ ...roomConfig, ...preset, name: preset.name })); setShowRoomPresets(false); }}
+                  style={{ padding:"8px 16px", borderRadius:50, border:"1px solid rgba(139,92,246,0.25)",
+                    background:"rgba(139,92,246,0.1)", color: isEvening?"#c4b5fd":"#6d28d9",
+                    cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"system-ui,sans-serif" }}>
+                  {preset.name}
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showFurniturePanel && (
+            <motion.div key="furniturePanel" initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-20 }}
+              style={{ position:"absolute", top:0, left:0, bottom:0, zIndex:25, width:220, overflowY:"auto",
+                padding:"16px 12px", backdropFilter:"blur(24px)",
+                background: isEvening ? "rgba(20,10,50,0.85)" : "rgba(255,255,255,0.88)",
+                border: isEvening ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.8)",
+                boxShadow:"4px 0 24px rgba(120,80,220,0.15)" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                <div style={{ fontSize:13, fontWeight:700, color: isEvening?"#e0d0ff":"#2d1f4e" }}>Add Furniture</div>
+                <button onClick={() => setShowFurniturePanel(false)} style={{ background:"none", border:"none", cursor:"pointer", color: isEvening?"#9b8db8":"#9b93b8", fontSize:18 }}>×</button>
+              </div>
+              {Object.entries(FURNITURE_CATALOG_3D).map(([cat, items]) => (
+                <div key={cat} style={{ marginBottom:14 }}>
+                  <div style={{ fontSize:10, fontWeight:700, color: isEvening?"#7b6da8":"#9b93b8", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8 }}>{cat}</div>
+                  {items.map(item => (
+                    <motion.button key={item.type} whileHover={{ scale:1.02, x:2 }} whileTap={{ scale:0.97 }}
+                      onClick={() => addFurniture3D(item)}
+                      style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"8px 10px", borderRadius:10, border:"none", marginBottom:5, cursor:"pointer", textAlign:"left",
+                        background: isEvening ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.08)",
+                        fontFamily:"system-ui,sans-serif" }}>
+                      <div style={{ width:10, height:10, borderRadius:3, background:item.color, flexShrink:0 }} />
+                      <span style={{ fontSize:12, fontWeight:600, color: isEvening?"#c4b5fd":"#4c1d95" }}>{item.label}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
         <AnimatePresence>
           {selectedItem && (
             <motion.div key="panel" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
