@@ -34,7 +34,7 @@ export default function GlassSidebar() {
 
   return (
     <>
-      <style>{`
+      <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         .msb { font-family: 'Inter', sans-serif; }
         .msb-nav-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; width: 100%; text-align: left; transition: all 0.15s ease; border-radius: 10px; }
