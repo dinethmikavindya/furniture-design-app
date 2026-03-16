@@ -7,6 +7,7 @@ import { OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
+import { useTheme } from "@/context/ThemeContext";
 
 function getModelPath(type) {
   const map = {
@@ -50,38 +51,32 @@ function getModelPath(type) {
 const PX_PER_METRE = 80;
 const WALL_H = 2.8;
 
-// Sun simulation — given hour 0-24 returns all lighting params
 function getSunParams(hour) {
-  // Sun arc: rises at 6, sets at 20
-  const sunAngle = ((hour - 6) / 14) * Math.PI; // 0=east, PI/2=overhead, PI=west
+  const sunAngle = ((hour - 6) / 14) * Math.PI;
   const isDay = hour >= 6 && hour <= 20;
   const isDawn = hour >= 5 && hour < 8;
   const isDusk = hour >= 18 && hour <= 21;
   const isNight = hour < 5 || hour > 21;
 
-  // Sun position on arc
   const arcRadius = 20;
   const sunX = Math.cos(Math.PI - sunAngle) * arcRadius;
   const sunY = Math.max(0.1, Math.sin(sunAngle) * arcRadius);
   const sunZ = -arcRadius * 0.3;
 
-  // Light intensity
   let ambient, dirIntensity;
   if (isNight) { ambient = 0.2; dirIntensity = 0.25; }
   else if (isDawn || isDusk) { ambient = 0.7; dirIntensity = 0.9; }
   else { ambient = 1.3; dirIntensity = 1.6; }
 
-  // Sun color
   let r, g, b;
   if (isNight) { r = 0.15; g = 0.2; b = 0.5; }
-  else if (hour >= 5 && hour < 7) { r = 0.95; g = 0.78; b = 0.58; } // soft sunrise
-  else if (hour >= 7 && hour < 10) { r = 1.0; g = 0.75; b = 0.45; } // morning gold
-  else if (hour >= 10 && hour < 16) { r = 1.0; g = 0.97; b = 0.9; } // midday white
-  else if (hour >= 16 && hour < 19) { r = 1.0; g = 0.65; b = 0.25; } // afternoon gold
-  else if (hour >= 19 && hour < 21) { r = 0.88; g = 0.62; b = 0.42; } // muted sunset
+  else if (hour >= 5 && hour < 7) { r = 0.95; g = 0.78; b = 0.58; }
+  else if (hour >= 7 && hour < 10) { r = 1.0; g = 0.75; b = 0.45; }
+  else if (hour >= 10 && hour < 16) { r = 1.0; g = 0.97; b = 0.9; }
+  else if (hour >= 16 && hour < 19) { r = 1.0; g = 0.65; b = 0.25; }
+  else if (hour >= 19 && hour < 21) { r = 0.88; g = 0.62; b = 0.42; }
   else { r = 0.15; g = 0.2; b = 0.5; }
 
-  // Background sky gradient
   let bg;
   if (isNight) bg = "#1a1a28";
   else if (hour >= 5 && hour < 7) bg = "linear-gradient(180deg,#d8cfc8 0%,#e8ddd4 100%)";
@@ -127,7 +122,6 @@ function CameraController({ topDown, roomWidth, roomDepth, orbitRef }) {
   return null;
 }
 
-// Invisible floor plane for raycasting drag
 function DragPlane({ onPointerMove, onPointerUp }) {
   return (
     <mesh
@@ -202,7 +196,6 @@ function FurnitureModelInner({ item, roomWidth, roomHeight, isSelected, onSelect
     pointerDownPos.current = { x: e.clientX, y: e.clientY };
     didDrag.current = false;
     if (isSelected) {
-      // start drag — disable orbit
       setIsDragging(item.id);
       if (orbitRef.current) orbitRef.current.enabled = false;
     }
@@ -305,20 +298,16 @@ function SceneContent({ furniture, roomConfig, selectedId, onSelect, onMove, isD
       <directionalLight position={[-maxDim * 0.5, maxDim * 0.3, maxDim * 0.5]} intensity={sun.ambient * 0.25} color="#ffd4a3" />
       <pointLight position={[0, WALL_H * 0.9, 0]} intensity={0.6} color="#ffeedd" distance={15} />
       <pointLight position={[0, WALL_H * 0.85, 0]} intensity={sun.isNight ? 0.8 : 0.3} color={sun.isNight ? "#ffd4a0" : "#fff8f0"} distance={maxDim * 4} />
-      {/* Visible sun/moon sphere in the sky */}
       <mesh position={[sun.sunX, sun.sunY, sun.sunZ]}>
         <sphereGeometry args={[0.35, 16, 16]} />
         <meshBasicMaterial color={new THREE.Color(sun.r, sun.g, sun.b)} />
       </mesh>
-      {/* Sun glow halo */}
       {!sun.isNight && (
         <mesh position={[sun.sunX, sun.sunY, sun.sunZ]}>
           <sphereGeometry args={[0.65, 16, 16]} />
           <meshBasicMaterial color={new THREE.Color(sun.r, sun.g, sun.b)} transparent opacity={0.18} />
         </mesh>
       )}
-
-      {/* Room */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[w, d]} />
         <meshStandardMaterial color={new THREE.Color(roomConfig.floorColor)} roughness={0.9} />
@@ -348,10 +337,7 @@ function SceneContent({ furniture, roomConfig, selectedId, onSelect, onMove, isD
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, WALL_H, 0]}>
         <planeGeometry args={[w, d]} /><meshStandardMaterial color={new THREE.Color(roomConfig.wallColor)} roughness={1} side={THREE.BackSide} />
       </mesh>
-
-      {/* Drag plane — only active when dragging */}
       {isDragging && <DragPlane onPointerMove={handleDragPlaneMove} onPointerUp={handleDragPlaneUp} />}
-
       {furniture.map(item => (
         <FurnitureModel
           key={item.id} item={item}
@@ -370,6 +356,7 @@ function SceneContent({ furniture, roomConfig, selectedId, onSelect, onMove, isD
 
 export default function Editor3D() {
   const router = useRouter();
+  const { dark } = useTheme(); // ← DARK MODE ADDED
   const orbitRef = useRef();
   const [furniture, setFurniture] = useState([]);
   const [roomConfig, setRoomConfig] = useState({ name: "My Space", width: 5, height: 4, wallColor: "#f5efe6", floorColor: "#d4c5a9" });
@@ -382,6 +369,7 @@ export default function Editor3D() {
   const [timeOfDay, setTimeOfDay] = useState(12);
   const [showRoomPresets, setShowRoomPresets] = useState(false);
   const [showFurniturePanel, setShowFurniturePanel] = useState(false);
+
   const ROOM_PRESETS = [
     { name: "Living Room",  width: 6, height: 5, wallColor: "#f5efe6", floorColor: "#d4c5a9" },
     { name: "Bedroom",      width: 5, height: 4, wallColor: "#e8e0f0", floorColor: "#c8b89a" },
@@ -390,6 +378,7 @@ export default function Editor3D() {
     { name: "Kids Room",    width: 4, height: 4, wallColor: "#f0e8f8", floorColor: "#d4c8e0" },
     { name: "Dining Room",  width: 5, height: 4, wallColor: "#f5f0e8", floorColor: "#c8b89a" },
   ];
+
   const FURNITURE_CATALOG_3D = {
     Sofas: [
       { type:"sofa-2", label:"2-Seat Sofa", w:160, h:80, color:"#c4b5fd" },
@@ -414,6 +403,7 @@ export default function Editor3D() {
       { type:"cabinet-tv", label:"TV Cabinet", w:160, h:45, color:"#d1d5db" },
     ],
   };
+
   let _uid3d = 1;
   const uid3d = () => "3d_" + _uid3d++;
 
@@ -470,7 +460,7 @@ export default function Editor3D() {
     if (!canvas) return;
     try {
       const imgData = canvas.toDataURL("image/png");
-      const w = 297, h = 210; // A4 landscape mm
+      const w = 297, h = 210;
       const html = `<!DOCTYPE html><html><head><style>
         body{margin:0;padding:0;font-family:Arial,sans-serif;background:#f0eaff;}
         .page{width:${w}mm;min-height:${h}mm;padding:12mm;box-sizing:border-box;}
@@ -498,6 +488,7 @@ export default function Editor3D() {
       URL.revokeObjectURL(url);
     } catch(e) { console.error(e); }
   };
+
   const addFurniture3D = (item) => {
     const roomW = roomConfig.width * 80;
     const roomH = roomConfig.height * 80;
@@ -510,16 +501,22 @@ export default function Editor3D() {
     setFurniture(updated);
     try { localStorage.setItem("mauve_furniture", JSON.stringify(updated)); } catch(e) {}
   };
+
   const selectedItem = furniture.find(f => f.id === selectedId);
   const sunParams = getSunParams(timeOfDay);
   const isEvening = timeOfDay < 7 || timeOfDay > 19;
+
+  // ← DARK MODE: combine theme toggle with time-of-day for all UI panels
+  const isDark = dark || isEvening;
+
   if (!mounted) return null;
 
   return (
     <div style={{
       display: "flex", flexDirection: "column", height: "100vh",
       fontFamily: "system-ui, sans-serif",
-      background: sunParams.bg,
+      // Dark mode overrides the sun bg; sun sim kept when dark mode is off
+      background: dark ? "linear-gradient(135deg,#0f0a1a 0%,#0a1020 50%,#120a1a 100%)" : sunParams.bg,
       overflow: "hidden", transition: "background 0.8s ease",
     }}>
       <motion.header
@@ -528,25 +525,26 @@ export default function Editor3D() {
         style={{
           height: 52, display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "0 20px", zIndex: 30,
-          background: isEvening ? "rgba(20,10,40,0.55)" : "rgba(255,255,255,0.18)",
+          background: isDark ? "rgba(20,10,40,0.75)" : "rgba(255,255,255,0.18)",
           backdropFilter: "blur(24px)",
-          borderBottom: isEvening ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.45)",
+          borderBottom: isDark ? "1px solid rgba(139,92,246,0.2)" : "1px solid rgba(255,255,255,0.45)",
           flexShrink: 0,
         }}
       >
         <span onClick={() => router.push("/dashboard")}
-          style={{ fontSize: 18, fontWeight: 700, color: isEvening ? "#e0d0ff" : "#2d1f4e", cursor: "pointer" }}>
+          style={{ fontSize: 18, fontWeight: 700, color: isDark ? "#e0d0ff" : "#2d1f4e", cursor: "pointer" }}>
           Mauve Studio<span style={{ color: "#8b5cf6" }}>.</span>
         </span>
+
         <div style={{
           display: "flex", gap: 4,
-          background: isEvening ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.35)",
-          border: isEvening ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(255,255,255,0.6)",
+          background: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.35)",
+          border: isDark ? "1px solid rgba(139,92,246,0.25)" : "1px solid rgba(255,255,255,0.6)",
           borderRadius: 50, padding: "3px",
         }}>
           <button onClick={() => router.push("/editor/2d")} style={{
             padding: "5px 20px", borderRadius: 50, border: "none", background: "transparent",
-            fontSize: 13, fontWeight: 600, color: isEvening ? "#b8a0d8" : "#6b5b95", cursor: "pointer",
+            fontSize: 13, fontWeight: 600, color: isDark ? "#b8a0d8" : "#6b5b95", cursor: "pointer",
           }}>2D Plan</button>
           <div style={{
             padding: "5px 20px", borderRadius: 50,
@@ -554,54 +552,45 @@ export default function Editor3D() {
             fontSize: 13, fontWeight: 700, color: "#fff", boxShadow: "0 4px 14px rgba(109,40,217,0.35)",
           }}>3D View</div>
         </div>
+
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleScreenshot}
-            style={{
-              padding: "7px 16px", borderRadius: 50, border: "1px solid rgba(139,92,246,0.3)",
-              fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
-              color: isEvening ? "#c4b5fd" : "#6d28d9", cursor: "pointer",
-              background: isEvening ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)",
-            }}>
-            {screenshotMsg ? "Saved!" : "Screenshot"}
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handlePDFExport}
-            style={{ padding: "7px 16px", borderRadius: 50, border: "1px solid rgba(139,92,246,0.3)",
-              fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
-              color: isEvening ? "#c4b5fd" : "#6d28d9", cursor: "pointer",
-              background: isEvening ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)" }}>
-            Export PDF
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowRoomPresets(v => !v)}
-            style={{ padding: "7px 16px", borderRadius: 50,
-              border: showRoomPresets ? "1px solid #8b5cf6" : "1px solid rgba(139,92,246,0.3)",
-              fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
-              color: showRoomPresets ? "#fff" : (isEvening ? "#c4b5fd" : "#6d28d9"), cursor: "pointer",
-              background: showRoomPresets ? "linear-gradient(135deg,#8b5cf6,#6d28d9)" : (isEvening ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)") }}>
-            Room Type
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowFurniturePanel(v => !v)}
-            style={{ padding: "7px 16px", borderRadius: 50,
-              border: showFurniturePanel ? "1px solid #8b5cf6" : "1px solid rgba(139,92,246,0.3)",
-              fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
-              color: showFurniturePanel ? "#fff" : (isEvening ? "#c4b5fd" : "#6d28d9"), cursor: "pointer",
-              background: showFurniturePanel ? "linear-gradient(135deg,#8b5cf6,#6d28d9)" : (isEvening ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)") }}>
-            + Furniture
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setTopDown(v => !v)}
-            style={{
-              padding: "7px 16px", borderRadius: 50,
-              border: topDown ? "1px solid #8b5cf6" : "1px solid rgba(139,92,246,0.3)",
-              fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
-              color: topDown ? "#fff" : (isEvening ? "#c4b5fd" : "#6d28d9"), cursor: "pointer",
-              background: topDown ? "linear-gradient(135deg,#8b5cf6,#6d28d9)" : (isEvening ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)"),
-            }}>
-            {topDown ? "3D View" : "Top View"}
-          </motion.button>
+          {[
+            { label: screenshotMsg ? "Saved!" : "Screenshot", action: handleScreenshot },
+            { label: "Export PDF", action: handlePDFExport },
+          ].map(btn => (
+            <motion.button key={btn.label} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={btn.action}
+              style={{
+                padding: "7px 16px", borderRadius: 50, border: "1px solid rgba(139,92,246,0.3)",
+                fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
+                color: isDark ? "#c4b5fd" : "#6d28d9", cursor: "pointer",
+                background: isDark ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)",
+              }}>
+              {btn.label}
+            </motion.button>
+          ))}
+
+          {[
+            { label: "Room Type", active: showRoomPresets, action: () => setShowRoomPresets(v => !v) },
+            { label: "+ Furniture", active: showFurniturePanel, action: () => setShowFurniturePanel(v => !v) },
+            { label: topDown ? "3D View" : "Top View", active: topDown, action: () => setTopDown(v => !v) },
+          ].map(btn => (
+            <motion.button key={btn.label} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={btn.action}
+              style={{
+                padding: "7px 16px", borderRadius: 50,
+                border: btn.active ? "1px solid #8b5cf6" : "1px solid rgba(139,92,246,0.3)",
+                fontFamily: "system-ui, sans-serif", fontSize: 12, fontWeight: 700,
+                color: btn.active ? "#fff" : (isDark ? "#c4b5fd" : "#6d28d9"), cursor: "pointer",
+                background: btn.active ? "linear-gradient(135deg,#8b5cf6,#6d28d9)" : (isDark ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.12)"),
+              }}>
+              {btn.label}
+            </motion.button>
+          ))}
+
           <div style={{
             display: "flex", gap: 6, alignItems: "center", fontSize: 12, fontWeight: 600,
-            color: isEvening ? "#c4b5fd" : "#8b5cf6", padding: "6px 14px", borderRadius: 50,
-            background: isEvening ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.10)",
-            border: isEvening ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(139,92,246,0.15)",
+            color: isDark ? "#c4b5fd" : "#8b5cf6", padding: "6px 14px", borderRadius: 50,
+            background: isDark ? "rgba(139,92,246,0.2)" : "rgba(139,92,246,0.10)",
+            border: isDark ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(139,92,246,0.15)",
           }}>
             <div style={{ width: 9, height: 9, borderRadius: 2, background: roomConfig.wallColor, border: "1px solid rgba(255,255,255,0.3)" }} />
             <div style={{ width: 9, height: 9, borderRadius: 2, background: roomConfig.floorColor, border: "1px solid rgba(255,255,255,0.3)" }} />
@@ -638,20 +627,22 @@ export default function Editor3D() {
           </Canvas>
         )}
 
+        {/* Room presets panel */}
         <AnimatePresence>
           {showRoomPresets && (
             <motion.div key="presets" initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}
               style={{ position:"absolute", top:16, left:"50%", transform:"translateX(-50%)", zIndex:25,
                 padding:"16px", borderRadius:18, backdropFilter:"blur(24px)",
-                background: isEvening ? "rgba(20,10,50,0.85)" : "rgba(255,255,255,0.9)",
-                border: isEvening ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.8)",
+                background: isDark ? "rgba(20,10,50,0.92)" : "rgba(255,255,255,0.9)",
+                border: isDark ? "1px solid rgba(139,92,246,0.35)" : "1px solid rgba(255,255,255,0.8)",
                 boxShadow:"0 8px 32px rgba(120,80,220,0.2)", display:"flex", gap:10, flexWrap:"wrap", maxWidth:480 }}>
-              <div style={{ width:"100%", fontSize:11, fontWeight:700, color: isEvening?"#9b8db8":"#9b93b8", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:4 }}>Choose Room Type</div>
+              <div style={{ width:"100%", fontSize:11, fontWeight:700, color: isDark?"#a78bfa":"#9b93b8", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:4 }}>Choose Room Type</div>
               {ROOM_PRESETS.map(preset => (
                 <motion.button key={preset.name} whileHover={{ scale:1.05 }} whileTap={{ scale:0.95 }}
                   onClick={() => { setRoomConfig(r => ({ ...r, ...preset, name: preset.name })); localStorage.setItem("mauve_room", JSON.stringify({ ...roomConfig, ...preset, name: preset.name })); setShowRoomPresets(false); }}
                   style={{ padding:"8px 16px", borderRadius:50, border:"1px solid rgba(139,92,246,0.25)",
-                    background:"rgba(139,92,246,0.1)", color: isEvening?"#c4b5fd":"#6d28d9",
+                    background: isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.1)",
+                    color: isDark?"#c4b5fd":"#6d28d9",
                     cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"system-ui,sans-serif" }}>
                   {preset.name}
                 </motion.button>
@@ -659,29 +650,31 @@ export default function Editor3D() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Furniture panel */}
         <AnimatePresence>
           {showFurniturePanel && (
             <motion.div key="furniturePanel" initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-20 }}
               style={{ position:"absolute", top:0, left:0, bottom:0, zIndex:25, width:220, overflowY:"auto",
                 padding:"16px 12px", backdropFilter:"blur(24px)",
-                background: isEvening ? "rgba(20,10,50,0.85)" : "rgba(255,255,255,0.88)",
-                border: isEvening ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.8)",
+                background: isDark ? "rgba(15,8,40,0.92)" : "rgba(255,255,255,0.88)",
+                border: isDark ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.8)",
                 boxShadow:"4px 0 24px rgba(120,80,220,0.15)" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-                <div style={{ fontSize:13, fontWeight:700, color: isEvening?"#e0d0ff":"#2d1f4e" }}>Add Furniture</div>
-                <button onClick={() => setShowFurniturePanel(false)} style={{ background:"none", border:"none", cursor:"pointer", color: isEvening?"#9b8db8":"#9b93b8", fontSize:18 }}>×</button>
+                <div style={{ fontSize:13, fontWeight:700, color: isDark?"#e0d0ff":"#2d1f4e" }}>Add Furniture</div>
+                <button onClick={() => setShowFurniturePanel(false)} style={{ background:"none", border:"none", cursor:"pointer", color: isDark?"#a78bfa":"#9b93b8", fontSize:18 }}>×</button>
               </div>
               {Object.entries(FURNITURE_CATALOG_3D).map(([cat, items]) => (
                 <div key={cat} style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color: isEvening?"#7b6da8":"#9b93b8", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8 }}>{cat}</div>
+                  <div style={{ fontSize:10, fontWeight:700, color: isDark?"#7b6da8":"#9b93b8", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8 }}>{cat}</div>
                   {items.map(item => (
                     <motion.button key={item.type} whileHover={{ scale:1.02, x:2 }} whileTap={{ scale:0.97 }}
                       onClick={() => addFurniture3D(item)}
                       style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"8px 10px", borderRadius:10, border:"none", marginBottom:5, cursor:"pointer", textAlign:"left",
-                        background: isEvening ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.08)",
+                        background: isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.08)",
                         fontFamily:"system-ui,sans-serif" }}>
                       <div style={{ width:10, height:10, borderRadius:3, background:item.color, flexShrink:0 }} />
-                      <span style={{ fontSize:12, fontWeight:600, color: isEvening?"#c4b5fd":"#4c1d95" }}>{item.label}</span>
+                      <span style={{ fontSize:12, fontWeight:600, color: isDark?"#c4b5fd":"#4c1d95" }}>{item.label}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -689,91 +682,95 @@ export default function Editor3D() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Selected item panel */}
         <AnimatePresence>
           {selectedItem && (
             <motion.div key="panel" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
               style={{
                 position: "absolute", top: 16, right: 16, zIndex: 20, padding: "16px 18px", borderRadius: 18,
-                background: isEvening ? "rgba(20,10,50,0.7)" : "rgba(255,255,255,0.32)", backdropFilter: "blur(24px)",
-                border: isEvening ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.7)", minWidth: 180,
+                background: isDark ? "rgba(20,10,50,0.85)" : "rgba(255,255,255,0.32)", backdropFilter: "blur(24px)",
+                border: isDark ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.7)", minWidth: 180,
               }}>
-              <div style={{ fontSize: 10, color: isEvening ? "#9b8db8" : "#9b93b8", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.5px" }}>Selected</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: isEvening ? "#e0d0ff" : "#4c1d95", marginBottom: 4 }}>{selectedItem.label}</div>
-              <div style={{ fontSize: 11, color: isEvening ? "#9b8db8" : "#6b5b95", marginBottom: 10 }}>{selectedItem.w}x{selectedItem.h}cm · {selectedItem.rotation || 0}deg</div>
-              <div style={{ fontSize: 10, color: isEvening ? "#7b6da8" : "#a0a0c0", marginBottom: 10, padding: "6px 10px", borderRadius: 8, background: isEvening ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.08)" }}>
+              <div style={{ fontSize: 10, color: isDark ? "#9b8db8" : "#9b93b8", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.5px" }}>Selected</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: isDark ? "#e0d0ff" : "#4c1d95", marginBottom: 4 }}>{selectedItem.label}</div>
+              <div style={{ fontSize: 11, color: isDark ? "#9b8db8" : "#6b5b95", marginBottom: 10 }}>{selectedItem.w}x{selectedItem.h}cm · {selectedItem.rotation || 0}deg</div>
+              <div style={{ fontSize: 10, color: isDark ? "#7b6da8" : "#a0a0c0", marginBottom: 10, padding: "6px 10px", borderRadius: 8, background: isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.08)" }}>
                 Drag the furniture to move it
               </div>
               <div style={{ display: "flex", gap: 6 }}>
                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleRotate}
-                  style={{ flex: 1, padding: "7px 0", borderRadius: 10, border: "none", cursor: "pointer", background: isEvening ? "rgba(139,92,246,0.3)" : "rgba(139,92,246,0.12)", color: isEvening ? "#c4b5fd" : "#6d28d9", fontSize: 12, fontWeight: 700 }}>
+                  style={{ flex: 1, padding: "7px 0", borderRadius: 10, border: "none", cursor: "pointer", background: isDark ? "rgba(139,92,246,0.3)" : "rgba(139,92,246,0.12)", color: isDark ? "#c4b5fd" : "#6d28d9", fontSize: 12, fontWeight: 700 }}>
                   Rotate 90
                 </motion.button>
                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleDelete}
-                  style={{ flex: 1, padding: "7px 0", borderRadius: 10, border: "none", cursor: "pointer", background: isEvening ? "rgba(220,50,50,0.25)" : "rgba(239,68,68,0.10)", color: isEvening ? "#fca5a5" : "#dc2626", fontSize: 12, fontWeight: 700 }}>
+                  style={{ flex: 1, padding: "7px 0", borderRadius: 10, border: "none", cursor: "pointer", background: isDark ? "rgba(220,50,50,0.25)" : "rgba(239,68,68,0.10)", color: isDark ? "#fca5a5" : "#dc2626", fontSize: 12, fontWeight: 700 }}>
                   Delete
                 </motion.button>
               </div>
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => setSelectedId(null)}
-                style={{ marginTop: 8, width: "100%", padding: "6px", borderRadius: 10, border: "none", background: "transparent", color: isEvening ? "#7b6da8" : "#9b93b8", fontSize: 11, cursor: "pointer" }}>
+                style={{ marginTop: 8, width: "100%", padding: "6px", borderRadius: 10, border: "none", background: "transparent", color: isDark ? "#7b6da8" : "#9b93b8", fontSize: 11, cursor: "pointer" }}>
                 Deselect
               </motion.button>
             </motion.div>
           )}
         </AnimatePresence>
 
+        {/* Time of day slider */}
         <div style={{ position: "absolute", bottom: 20, left: 20, zIndex: 20 }}>
           <div style={{
-              padding: "12px 16px", borderRadius: 16, minWidth: 220,
-              background: isEvening ? "rgba(10,5,30,0.75)" : "rgba(255,255,255,0.28)",
-              backdropFilter: "blur(20px)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-              border: isEvening ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.6)",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: isEvening ? "#9b8db8" : "#6b5b95", textTransform: "uppercase", letterSpacing: "0.5px" }}>Time of Day</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: isEvening ? "#e0d0ff" : "#4c1d95", fontVariantNumeric: "tabular-nums" }}>{sunParams.timeLabel}</span>
-              </div>
-              {/* Sun arc visual */}
-              <div style={{ position: "relative", height: 36, marginBottom: 8 }}>
-                <svg width="100%" height="36" viewBox="0 0 200 36" style={{ position: "absolute", top: 0, left: 0 }}>
-                  <path d="M 10 32 Q 100 -10 190 32" stroke={isEvening ? "rgba(255,255,255,0.15)" : "rgba(139,92,246,0.2)"} strokeWidth="1.5" fill="none" strokeDasharray="4,3" />
-                  {(() => {
-                    const t = Math.max(0, Math.min(1, (timeOfDay - 6) / 14));
-                    const x = 10 + t * 180;
-                    const y = 32 - Math.sin(t * Math.PI) * 42;
-                    const isUp = timeOfDay >= 6 && timeOfDay <= 20;
-                    return isUp ? (
-                      <circle cx={x} cy={Math.max(2, y)} r="7" fill={`rgb(${Math.round(sunParams.r*255)},${Math.round(sunParams.g*255)},${Math.round(sunParams.b*255)})`}
-                        style={{ filter: "drop-shadow(0 0 6px rgba(255,200,50,0.8))" }} />
-                    ) : (
-                      <circle cx={timeOfDay < 6 ? 10 : 190} cy="32" r="5" fill="#8ab4f8" style={{ filter: "drop-shadow(0 0 4px rgba(100,150,255,0.6))" }} />
-                    );
-                  })()}
-                  <line x1="10" y1="33" x2="190" y2="33" stroke={isEvening ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} strokeWidth="1" />
-                </svg>
-              </div>
-              <input
-                type="range" min="0" max="24" step="0.25"
-                value={timeOfDay}
-                onChange={(e) => setTimeOfDay(parseFloat(e.target.value))}
-                style={{ width: "100%", accentColor: "#8b5cf6", cursor: "pointer" }}
-              />
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: isEvening ? "#6b5b95" : "#9b93b8" }}>
-                <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
-              </div>
+            padding: "12px 16px", borderRadius: 16, minWidth: 220,
+            background: isDark ? "rgba(10,5,30,0.85)" : "rgba(255,255,255,0.28)",
+            backdropFilter: "blur(20px)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+            border: isDark ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.6)",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: isDark ? "#9b8db8" : "#6b5b95", textTransform: "uppercase", letterSpacing: "0.5px" }}>Time of Day</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#e0d0ff" : "#4c1d95", fontVariantNumeric: "tabular-nums" }}>{sunParams.timeLabel}</span>
             </div>
+            <div style={{ position: "relative", height: 36, marginBottom: 8 }}>
+              <svg width="100%" height="36" viewBox="0 0 200 36" style={{ position: "absolute", top: 0, left: 0 }}>
+                <path d="M 10 32 Q 100 -10 190 32" stroke={isDark ? "rgba(255,255,255,0.15)" : "rgba(139,92,246,0.2)"} strokeWidth="1.5" fill="none" strokeDasharray="4,3" />
+                {(() => {
+                  const t = Math.max(0, Math.min(1, (timeOfDay - 6) / 14));
+                  const x = 10 + t * 180;
+                  const y = 32 - Math.sin(t * Math.PI) * 42;
+                  const isUp = timeOfDay >= 6 && timeOfDay <= 20;
+                  return isUp ? (
+                    <circle cx={x} cy={Math.max(2, y)} r="7" fill={`rgb(${Math.round(sunParams.r*255)},${Math.round(sunParams.g*255)},${Math.round(sunParams.b*255)})`}
+                      style={{ filter: "drop-shadow(0 0 6px rgba(255,200,50,0.8))" }} />
+                  ) : (
+                    <circle cx={timeOfDay < 6 ? 10 : 190} cy="32" r="5" fill="#8ab4f8" style={{ filter: "drop-shadow(0 0 4px rgba(100,150,255,0.6))" }} />
+                  );
+                })()}
+                <line x1="10" y1="33" x2="190" y2="33" stroke={isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} strokeWidth="1" />
+              </svg>
+            </div>
+            <input
+              type="range" min="0" max="24" step="0.25"
+              value={timeOfDay}
+              onChange={(e) => setTimeOfDay(parseFloat(e.target.value))}
+              style={{ width: "100%", accentColor: "#8b5cf6", cursor: "pointer" }}
+            />
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: isDark ? "#6b5b95" : "#9b93b8" }}>
+              <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
+            </div>
+          </div>
         </div>
 
+        {/* Bottom hint */}
         <div style={{
           position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", zIndex: 20,
           padding: "8px 16px", borderRadius: 50,
-          background: isEvening ? "rgba(20,10,50,0.6)" : "rgba(255,255,255,0.22)", backdropFilter: "blur(16px)",
-          border: isEvening ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(255,255,255,0.5)",
-          fontSize: 11, color: isEvening ? "#9b8db8" : "#6b5b95", fontWeight: 600, whiteSpace: "nowrap",
+          background: isDark ? "rgba(20,10,50,0.7)" : "rgba(255,255,255,0.22)", backdropFilter: "blur(16px)",
+          border: isDark ? "1px solid rgba(139,92,246,0.2)" : "1px solid rgba(255,255,255,0.5)",
+          fontSize: 11, color: isDark ? "#9b8db8" : "#6b5b95", fontWeight: 600, whiteSpace: "nowrap",
           pointerEvents: "none",
         }}>
           {selectedId ? "Drag furniture to move it · Rotate or Delete in panel" : "Click furniture to select · Drag to orbit · Scroll to zoom"}
         </div>
 
+        {/* Edit in 2D button */}
         <motion.button whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }} onClick={() => router.push("/editor/2d")}
           style={{
             position: "absolute", bottom: 20, right: 20, zIndex: 20, padding: "11px 24px", borderRadius: 50, border: "none",

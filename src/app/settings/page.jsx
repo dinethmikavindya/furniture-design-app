@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassSidebar from "@/components/GlassSidebar";
+import { useAuth } from '@/context/AuthContext';
+import { useTheme } from "@/context/ThemeContext";
 
 /* ══════════════════════════════════════════
    TOGGLE SWITCH
@@ -48,8 +50,8 @@ function SettingRow({ label, description, children, last }) {
       gap: 16,
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, color: "#1e1040", fontSize: 13.5, marginBottom: 3 }}>{label}</div>
-        {description && <div style={{ fontSize: 12, color: "#9b93b8", lineHeight: 1.5 }}>{description}</div>}
+        <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 13.5, marginBottom: 3 }}>{label}</div>
+        {description && <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.5 }}>{description}</div>}
       </div>
       <div style={{ flexShrink: 0 }}>{children}</div>
     </div>
@@ -69,8 +71,8 @@ function SliderRow({ label, description, value, onChange, min, max, step, unit, 
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <div>
-          <div style={{ fontWeight: 600, color: "#1e1040", fontSize: 13.5, marginBottom: 3 }}>{label}</div>
-          {description && <div style={{ fontSize: 12, color: "#9b93b8" }}>{description}</div>}
+          <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 13.5, marginBottom: 3 }}>{label}</div>
+          {description && <div style={{ fontSize: 12, color: "var(--text2)" }}>{description}</div>}
         </div>
         <span style={{
           fontSize: 15, fontWeight: 800, color: "#7c3aed",
@@ -100,7 +102,7 @@ function SliderRow({ label, description, value, onChange, min, max, step, unit, 
 /* ══════════════════════════════════════════
    CHIP SELECTOR
 ══════════════════════════════════════════ */
-function ChipSelector({ options, value, onChange }) {
+function ChipSelector({ options, value, onChange, dark }) {
   return (
     <div style={{ display: "flex", gap: 6 }}>
       {options.map((opt) => (
@@ -112,8 +114,8 @@ function ChipSelector({ options, value, onChange }) {
             padding: "8px 18px", borderRadius: 20, border: "none",
             fontSize: 12.5, fontWeight: 700, cursor: "pointer",
             fontFamily: "'Afacad',sans-serif",
-            background: (opt.value || opt) === value ? "#8b5cf6" : "rgba(255,255,255,0.45)",
-            color: (opt.value || opt) === value ? "#fff" : "#6d5a8a",
+            background: (opt.value || opt) === value ? "#8b5cf6" : dark ? "rgba(139,92,246,0.12)" : "rgba(255,255,255,0.45)",
+color: (opt.value || opt) === value ? "#fff" : dark ? "#a78bfa" : "#6d5a8a",
             boxShadow: (opt.value || opt) === value
               ? "0 4px 14px rgba(139,92,246,0.40)"
               : "0 2px 8px rgba(0,0,0,0.05), 0 0 0 1px rgba(255,255,255,0.5)",
@@ -138,7 +140,7 @@ function GlassCard({ children, style, glowColor }) {
       transition={{ type: "spring", stiffness: 100, damping: 18 }}
       style={{
         borderRadius: 26, position: "relative",
-        background: "rgba(255,255,255,0.30)",
+        background: "var(--card)",
         backdropFilter: "blur(40px) saturate(200%) brightness(1.08)",
         WebkitBackdropFilter: "blur(40px) saturate(200%) brightness(1.08)",
         boxShadow: `0 8px 32px rgba(120,80,220,0.07), 0 0 0 0.5px rgba(255,255,255,0.28)`,
@@ -163,11 +165,11 @@ function SectionHeader({ title, subtitle }) {
           background: "linear-gradient(135deg,#8b5cf6,#60a5fa)",
           boxShadow: "0 0 8px rgba(139,92,246,0.5)",
         }} />
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: "#1e1040", letterSpacing: "-0.2px", margin: 0 }}>
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", letterSpacing: "-0.2px", margin: 0 }}>
           {title}
         </h2>
       </div>
-      {subtitle && <div style={{ fontSize: 12.5, color: "#9b93b8", paddingLeft: 16, fontWeight: 500 }}>{subtitle}</div>}
+      {subtitle && <div style={{ fontSize: 12.5, color: "var(--text2)", paddingLeft: 16, fontWeight: 500 }}>{subtitle}</div>}
     </div>
   );
 }
@@ -176,7 +178,8 @@ function SectionHeader({ title, subtitle }) {
    MAIN SETTINGS PAGE
 ══════════════════════════════════════════ */
 export default function SettingsPage() {
-  const [theme, setTheme] = useState("light");
+  const { dark, toggle } = useTheme();
+  const theme = dark ? "dark" : "light";
   const [gridEnabled, setGridEnabled] = useState(true);
   const [gridSize, setGridSize] = useState(20);
   const [snapToGrid, setSnapToGrid] = useState(false);
@@ -190,22 +193,6 @@ export default function SettingsPage() {
   const [message, setMessage] = useState("");
 
   const userId = "f9cb7339-fd63-43ea-933d-de84aa0cd524";
-
-  const applyTheme = (t) => {
-    if (t === "dark") {
-      document.body.style.background = "linear-gradient(135deg,#0f0f1a,#1a1030,#0f1a1a)";
-      document.body.style.color = "#e8e0ff";
-    } else {
-      document.body.style.background = "linear-gradient(135deg,#f0eaff,#eaf0ff,#f5eaff)";
-      document.body.style.color = "#2d1f4e";
-    }
-  };
-
-  useEffect(() => {
-    const saved = localStorage.getItem("mauve_theme") || "light";
-    setTheme(saved);
-    applyTheme(saved);
-  }, []);
 
   const saveSettings = async () => {
     setSaving(true);
@@ -227,18 +214,14 @@ export default function SettingsPage() {
   };
 
   const handleThemeToggle = async () => {
-    const newTheme = theme === "light" ? "dark" : "light";
+    toggle();
     try {
       await fetch("/api/settings/theme", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, theme: newTheme }),
+        body: JSON.stringify({ userId, theme: !dark ? "dark" : "light" }),
       });
     } catch {}
-    setTheme(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("mauve_theme", newTheme);
-    applyTheme(newTheme);
     showMessage("Theme updated! ✨");
   };
 
@@ -275,7 +258,9 @@ export default function SettingsPage() {
       height: "100vh",
       overflow: "hidden",
       fontFamily: "'Afacad','Helvetica Neue',sans-serif",
-      background: "linear-gradient(145deg,#f0eaff 0%,#e8f4ff 45%,#f0e8ff 100%)",
+      background: dark
+  ? "linear-gradient(135deg,#0f0a1a 0%,#0a1020 50%,#120a1a 100%)"
+  : "linear-gradient(145deg,#f0eaff 0%,#e8f4ff 45%,#f0e8ff 100%)",
     }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
 
@@ -299,7 +284,7 @@ export default function SettingsPage() {
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
         >
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: "#1e1040", letterSpacing: "-0.6px", margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.6px", margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
               Settings
               <span style={{
                 background: "linear-gradient(90deg,#8b5cf6,#ec4899,#60a5fa)",
@@ -309,7 +294,7 @@ export default function SettingsPage() {
                 fontSize: 20,
               }}>✦</span>
             </h1>
-            <p style={{ fontSize: 13.5, color: "#8878aa", margin: "4px 0 0", fontWeight: 500 }}>
+            <p style={{ fontSize: 13.5, color: "var(--text2)", margin: "4px 0 0", fontWeight: 500 }}>
               Customise your workspace, editor &amp; interface preferences
             </p>
           </div>
@@ -358,10 +343,11 @@ export default function SettingsPage() {
             <SectionHeader title="Units & Measurements" subtitle="Dimensions used across the editor" />
             <SettingRow label="Measurement System" description="Choose between Metric and Imperial">
               <ChipSelector
-                options={[{ label: "Metric (cm)", value: "metric" }, { label: "Imperial (ft)", value: "imperial" }]}
-                value={measurementSystem}
-                onChange={setMeasurementSystem}
-              />
+  options={[{ label: "Metric (cm)", value: "metric" }, { label: "Imperial (ft)", value: "imperial" }]}
+  value={measurementSystem}
+  onChange={setMeasurementSystem}
+  dark={dark}
+/>
             </SettingRow>
             <SliderRow
               label="Default Ceiling Height"
@@ -419,11 +405,11 @@ export default function SettingsPage() {
                 <div key={label} style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                   padding: "10px 14px", borderRadius: 14,
-                  background: "rgba(255,255,255,0.35)",
-                  boxShadow: "0 0 0 1px rgba(255,255,255,0.45)",
+                  background: "var(--card)",
+boxShadow: "0 0 0 1px var(--border)",
                 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "#6d5a8a" }}>{label}</span>
-                  <span style={{ fontSize: 12.5, fontWeight: 700, color: "#1e1040" }}>{value}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 600,color: "var(--text2)" }}>{label}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--text)" }}>{value}</span>
                 </div>
               ))}
             </div>
@@ -434,8 +420,8 @@ export default function SettingsPage() {
         <GlassCard glowColor="rgba(239,68,68,0.2)" style={{ padding: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#1e1040", marginBottom: 4 }}>Reset &amp; Danger Zone</div>
-              <div style={{ fontSize: 12.5, color: "#9b93b8" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Reset &amp; Danger Zone</div>
+              <div style={{ fontSize: 12.5, color: "var(--text2)" }}>
                 Reset all settings to default, or permanently delete your account.
               </div>
             </div>
@@ -444,8 +430,9 @@ export default function SettingsPage() {
                 whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.94 }}
                 style={{
                   padding: "10px 22px", borderRadius: 50, border: "none", cursor: "pointer",
-                  fontFamily: "'Afacad',sans-serif", fontSize: 13, fontWeight: 700, color: "#4c1d95",
-                  background: "rgba(255,255,255,0.5)", backdropFilter: "blur(20px)",
+                  fontFamily: "'Afacad',sans-serif", fontSize: 13, fontWeight: 700,color: dark ? "#a78bfa" : "#4c1d95",
+background: dark ? "rgba(139,92,246,0.12)" : "rgba(255,255,255,0.5)",
+                  backdropFilter: "blur(20px)",
                   boxShadow: "0 4px 16px rgba(120,80,220,0.08), 0 0 0 1px rgba(255,255,255,0.45)",
                 }}
               >Reset to Defaults</motion.button>

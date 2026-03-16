@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import GlassSidebar from "@/components/GlassSidebar";
+import { useTheme } from "@/context/ThemeContext";
 import Image from "next/image";
 
 const categoryImages = {
@@ -40,7 +41,7 @@ const PRICES = {
     "Floor Lamp": "Rs.15,000", "Potted Plant": "Rs.8,000", "Rug": "Rs.32,000",
 };
 
-function CategoryRow({ active, setActive }) {
+function CategoryRow({ active, setActive, dark }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -48,7 +49,7 @@ function CategoryRow({ active, setActive }) {
             transition={{ delay: 0.15, duration: 0.4 }}
             style={{
                 display: "flex", gap: 0, marginBottom: 40,
-                borderBottom: "1px solid #f0ece8", paddingBottom: 0,
+                borderBottom: dark ? "1px solid rgba(139,92,246,0.15)" : "1px solid #f0ece8", paddingBottom: 0,
             }}
         >
             {categories.map((cat) => (
@@ -64,7 +65,7 @@ function CategoryRow({ active, setActive }) {
                     <div style={{ height: 56, width: 64, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                         <Image src={categoryImages[cat]} alt={cat} fill style={{ objectFit: "contain", filter: "brightness(0.9)" }} />
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: active === cat ? "#7c3aed" : "#1a1a2e", fontFamily: "'Georgia', serif", letterSpacing: 0.2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: active === cat ? "#7c3aed" : "#1a1a2e",color: active === cat ? "#a78bfa" : dark ? "#a89bc8" : "#1a1a2e", fontFamily: "'Georgia', serif", letterSpacing: 0.2 }}>
                         {cat}
                     </span>
                 </motion.button>
@@ -73,7 +74,7 @@ function CategoryRow({ active, setActive }) {
     );
 }
 
-function ProductCard({ product, index }) {
+function ProductCard({ product, index, dark }) {
     const [hov, setHov] = useState(false);
     const router = useRouter();
     const catKey = product.category?.toLowerCase();
@@ -87,13 +88,13 @@ function ProductCard({ product, index }) {
             transition={{ delay: 0.1 + index * 0.06, duration: 0.4 }}
             onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
             style={{
-                background: "rgba(255,255,255,0.5)", backdropFilter: "blur(20px)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.7)",
+background: dark ? "rgba(30,20,60,0.6)" : "rgba(255,255,255,0.5)", backdropFilter: "blur(20px)", borderRadius: 12, border: dark ? "1px solid rgba(139,92,246,0.2)" : "1px solid rgba(255,255,255,0.7)",
                 padding: "16px 16px 18px", cursor: "pointer", transition: "box-shadow 0.2s, transform 0.2s",
                 boxShadow: hov ? "0 8px 28px rgba(0,0,0,0.09)" : "0 2px 8px rgba(0,0,0,0.04)",
                 transform: hov ? "translateY(-3px)" : "translateY(0)", minWidth: 0,
             }}
         >
-            <div style={{ background: "rgba(255,255,255,0.4)", borderRadius: 8, height: 120, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <div style={{ background: dark ? "rgba(20,12,45,0.6)" : "rgba(255,255,255,0.4)", borderRadius: 8, height: 120, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
                     <Image src={imgSrc} alt={product.name} fill
                         style={{ objectFit: "contain", padding: "12px", filter: colors[0] === "cream" ? "none" : "grayscale(80%) brightness(1.2)" }} />
@@ -114,18 +115,20 @@ function ProductCard({ product, index }) {
                     <div key={ci} style={{ width: 14, height: 14, borderRadius: "50%", background: c, border: ci === 0 ? "2px solid #7c3aed" : "2px solid #e5e0d8" }} />
                 ))}
             </div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#1a1a2e", marginBottom: 3, fontFamily: "'Georgia', serif" }}>{product.name}</div>
-            <div style={{ fontSize: 12, color: "#9b93b8", marginBottom: 6, fontWeight: 500 }}>{product.category}</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2e", fontFamily: "'Georgia', serif" }}>{PRICES[product.name] || "Rs.50,000"}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: dark ? "#f0eaff" : "#1a1a2e", marginBottom: 3, fontFamily: "'Georgia', serif" }}>{product.name}</div>
+            <div style={{ fontSize: 12, color: dark ? "#6b5b95" : "#9b93b8", marginBottom: 6, fontWeight: 500 }}>{product.category}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: dark ? "#f0eaff" : "#1a1a2e", fontFamily: "'Georgia', serif" }}>{PRICES
+[product.name] || "Rs.50,000"}</div>
         </motion.div>
     );
 }
 
-function NewArrivalsSection({ products = [], loading }) {
+function NewArrivalsSection({ products = [] = [], loading, dark }) {
     return (
         <section style={{ marginBottom: 40 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1a1a2e", fontFamily: "'Georgia', serif" }}>New Arrivals</h2>
+                <h2 style={{ fontSize: 22, fontWeight: 700, color: dark ? "#f0eaff" : "#1a1a2e", fontFamily: "'Georgia', serif"
+ }}>New Arrivals</h2>
                 <div style={{ display: "flex", gap: 8 }}>
                     {["←", "→"].map((arrow, i) => (
                         <button key={i} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e0dbd5", background: i === 1 ? "#fff" : "transparent", cursor: "pointer", fontSize: 14, color: i === 1 ? "#1a1a2e" : "#b0a898", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600 }}>{arrow}</button>
@@ -138,34 +141,40 @@ function NewArrivalsSection({ products = [], loading }) {
                 ) : products.length === 0 ? (
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 40, color: '#9b93b8' }}>No items found for this category.</div>
                 ) : (
-                    products.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)
+                    products.map((p, i) => <ProductCard key={p.id} product={p} index={i} dark={dark} />)
                 )}
             </div>
         </section>
     );
 }
 
-function PromoBanners() {
+function PromoBanners({dark}) {
     return (
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.5 }}
             style={{ display: "flex", gap: 16, marginTop: 20, height: 440, fontFamily: "'Outfit', sans-serif" }}>
-            <div style={{ flex: "0 0 270px", background: "linear-gradient(180deg, #fefbef 0%, #e0d4f6 100%)", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", padding: "60px 20px 40px", clipPath: "path('M 0,0 L 270,0 L 270,440 Q 135,360 0,440 Z')" }}>
+            <div style={{ flex: "0 0 270px", 
+background: dark ? "linear-gradient(180deg, #1e1040 0%, #2d1b69 100%)" : "linear-gradient(180deg, #fefbef 0%, #e0d4f6 100%)",
+                position: "relative", display: "flex", flexDirection: "column", alignItems: "center", padding: "60px 20px 40px", clipPath: "path('M 0,0 L 270,0 L 270,440 Q 135,360 0,440 Z')" }}>
                 <div style={{ width: "100%", height: 160, position: "relative", marginBottom: 30 }}>
                     <img src={categoryImages["bed"]} alt="Bed" style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 10px 10px rgba(0,0,0,0.1))" }} />
                 </div>
-                <h3 style={{ fontSize: 24, fontWeight: 600, color: "#000", margin: "0 0 8px 0", textAlign: "center" }}>Unique Lighting</h3>
+<h3 style={{ fontSize: 24, fontWeight: 600, color: dark ? "#f0eaff" : "#000",
+                     margin: "0 0 8px 0", textAlign: "center" }}>Unique Lighting</h3>
                 <p style={{ fontSize: 15, color: "#888", margin: "0 0 24px 0", textAlign: "center" }}>Four-Way Lighting</p>
                 <button style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#000", borderBottom: "2px solid #8b5cf6", paddingBottom: 2 }}>Shop Now</button>
             </div>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
                 <div style={{ display: "flex", gap: 16, height: "calc(50% - 8px)" }}>
-                    <div style={{ flex: 1, background: "linear-gradient(90deg, #fefbef 0%, #e0d4f6 100%)", display: "flex", alignItems: "center", padding: "0 40px" }}>
+                    <div style={{ flex: 1, 
+background: dark ? "linear-gradient(90deg, #1e1040 0%, #2d1b69 100%)" : "linear-gradient(90deg, #fefbef 0%, #e0d4f6 100%)",
+                        display: "flex", alignItems: "center", padding: "0 40px" }}>
                         <div style={{ flex: "0 0 50%", paddingRight: 20 }}>
                             <img src={categoryImages["sofa"]} alt="Sofa" style={{ width: "100%", maxHeight: 160, objectFit: "contain", filter: "drop-shadow(0 10px 10px rgba(0,0,0,0.1))" }} />
                         </div>
                         <div style={{ flex: "0 0 50%", textAlign: "left", paddingLeft: 20 }}>
-                            <h3 style={{ fontSize: 26, fontWeight: 600, color: "#000", margin: "0 0 8px 0" }}>Trending Sofa</h3>
-                            <p style={{ fontSize: 15, color: "#888", margin: "0 0 24px 0" }}>Timber Nest Furnishing</p>
+                            <h3 style={{ fontSize: 26, fontWeight: 600, color: dark ? "#f0eaff" : "#000", margin: "0 0 8px 0" }}>Trending Sofa</h3>
+<p style={{ fontSize: 15, color: dark ? "#a89bc8" : "#888",
+                                margin: "0 0 24px 0" }}>Timber Nest Furnishing</p>
                             <button style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#000", borderBottom: "2px solid #8b5cf6", paddingBottom: 2 }}>Shop Now</button>
                         </div>
                     </div>
@@ -175,7 +184,9 @@ function PromoBanners() {
                         <button style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 14, fontWeight: 500, color: "#fff", borderBottom: "2px solid #8b5cf6", paddingBottom: 2 }}>Shop Now</button>
                     </div>
                 </div>
-                <div style={{ display: "flex", height: "calc(50% - 8px)", backgroundColor: "#e0d4f6", position: "relative", overflow: "hidden" }}>
+                <div style={{ display: "flex", height: "calc(50% - 8px)", 
+backgroundColor: dark ? "#1e1040" : "#e0d4f6", position: "relative",
+                    overflow: "hidden" }}>
                     <div style={{ flex: "0 0 50%", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", position: "relative", zIndex: 2 }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 16, width: 180, height: 180 }}>
                             {[publicImages.one, publicImages.two, publicImages.three, publicImages.four].map((src, i) => (
@@ -189,8 +200,8 @@ function PromoBanners() {
                         <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${publicImages.home})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.35, mixBlendMode: "luminosity" }} />
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(224,212,246,1) 0%, rgba(224,212,246,0.2) 50%, rgba(224,212,246,0) 100%)" }} />
                         <div style={{ position: "relative", zIndex: 3, paddingLeft: 30 }}>
-                            <h3 style={{ fontSize: 26, fontWeight: 600, color: "#000", margin: "0 0 8px 0" }}>Unique Lighting</h3>
-                            <p style={{ fontSize: 15, color: "#666", margin: "0 0 24px 0" }}>Four-Way Lighting</p>
+<h3 style={{ fontSize: 26, fontWeight: 600, color: dark ? "#f0eaff" : "#000", margin: "0 0 8px 0" }}>Unique Lighting</h3>
+                            <p style={{ fontSize: 15, color: dark ? "#a89bc8" : "#666", margin: "0 0 24px 0" }}>Four-Way Lighting</p>
                             <button style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#000", borderBottom: "2px solid #8b5cf6", paddingBottom: 2 }}>Shop Now</button>
                         </div>
                     </div>
@@ -204,6 +215,7 @@ export default function ShopPage() {
     const [activeCategory, setActiveCategory] = useState("Sofas");
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { dark } = useTheme();
 
     useEffect(() => {
         setLoading(true);
@@ -214,7 +226,7 @@ export default function ShopPage() {
     }, [activeCategory]);
 
     return (
-        <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#faf8f5", fontFamily: "'Afacad','Helvetica Neue',sans-serif" }}>
+        <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: dark ? "#0f0a1a" : "#faf8f5", fontFamily: "'Afacad','Helvetica Neue',sans-serif" }}>
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
                 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
@@ -230,9 +242,9 @@ export default function ShopPage() {
                     </h1>
                     <p style={{ color: "#9b93b8", fontSize: 14, fontWeight: 500 }}>Discover our latest collections</p>
                 </motion.div>
-                <CategoryRow active={activeCategory} setActive={setActiveCategory} />
-                <NewArrivalsSection products={products} loading={loading} />
-                <PromoBanners />
+                <CategoryRow active={activeCategory} setActive={setActiveCategory} dark={dark} />
+<NewArrivalsSection products={products} loading={loading} dark={dark} />
+<PromoBanners dark={dark} />
             </div>
         </div>
     );

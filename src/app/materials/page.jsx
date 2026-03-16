@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassSidebar from "@/components/GlassSidebar";
+import { useTheme } from "@/context/ThemeContext";
 import Image from "next/image";
 
 // Sofa SVG illustrations in different colors
@@ -83,7 +84,7 @@ const carouselItems = [
     { id: "next-cream", sofaColor: "#e8e0c8", position: "right" },
 ];
 
-function WelcomeHeader() {
+function WelcomeHeader({ dark }) {
     return (
         <motion.div
             initial={{ y: -12, opacity: 0 }}
@@ -91,23 +92,24 @@ function WelcomeHeader() {
             transition={{ delay: 0.08, duration: 0.4 }}
             style={{ marginBottom: 28 }}
         >
-            <h1 style={{ fontSize: 36, fontWeight: 700, color: "#1e1040", lineHeight: 1.2, marginBottom: 7 }}>
+            <h1 style={{ fontSize: 36, fontWeight: 700, 
+color: dark ? "#f0eaff" : "#e8e5ee", lineHeight: 1.2, marginBottom: 7
+                 }}>
                 Material{" "}
                 <span style={{
-                    background: "linear-gradient(90deg,#8b5cf6,#ec4899,#60a5fa,#8b5cf6)",
-                    backgroundSize: "300% auto",
+background: dark ? "linear-gradient(135deg,#0f0a1a 0%,#0a1020 50%,#120a1a 100%)" : "linear-gradient(135deg,#f0eaff 0%,#e8f4ff 50%,#f0e8ff 100%)",                    backgroundSize: "300% auto",
                     WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                     animation: "shimmer 3s linear infinite",
                 }}>Library</span>
             </h1>
-            <p style={{ color: "#9b93b8", fontSize: 14, fontWeight: 500 }}>
+            <p style={{ color: dark ? "#6b5b95" : "#9b93b8", fontSize: 14, fontWeight: 500 }}>
                 Browse high-quality textures and materials
             </p>
         </motion.div>
     );
 }
 
-function ProductCarousel({ selectedColor, setSelectedColor, colorOptions, category }) {
+function ProductCarousel({ selectedColor, setSelectedColor, colorOptions, category, dark }) {
     const [activeIdx, setActiveIdx] = useState(1);
 
     const sofaColor = colorOptions.find(c => c.id === selectedColor)?.sofaColor || "#d4d0cc";
@@ -120,7 +122,7 @@ function ProductCarousel({ selectedColor, setSelectedColor, colorOptions, catego
             transition={{ delay: 0.15, duration: 0.5 }}
             style={{
                 position: "relative",
-                background: "rgba(255,255,255,0.35)",
+background: dark ? "rgba(20,12,45,0.7)" : "rgba(255,255,255,0.35)",
                 borderRadius: 28,
                 padding: "48px 80px 40px",
                 marginBottom: 36,
@@ -161,9 +163,9 @@ function ProductCarousel({ selectedColor, setSelectedColor, colorOptions, catego
             <button style={{
                 position: "absolute", left: 22, top: "42%",
                 width: 38, height: 38, borderRadius: "50%",
-                border: "1.5px solid #c8c4be", background: "rgba(255,255,255,0.75)",
-                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 16, color: "#4a4a5a", backdropFilter: "blur(8px)", zIndex: 10,
+                border: dark ? "1.5px solid rgba(139,92,246,0.3)" : "1.5px solid #c8c4be", background: dark ? "rgba(30,20,60,0.8)" : "rgba(255,255,255,0.75)",
+cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+fontSize: 16, color: dark ? "#a78bfa" : "#4a4a5a", color: "#4a4a5a", backdropFilter: "blur(8px)", zIndex: 10,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
             }}>‹</button>
             <button style={{
@@ -251,7 +253,7 @@ function ProductCarousel({ selectedColor, setSelectedColor, colorOptions, catego
     );
 }
 
-function RelatedProductCard({ product, index }) {
+function RelatedProductCard({ product, index, dark }) {
     const [hov, setHov] = useState(false);
     return (
         <motion.div
@@ -261,9 +263,9 @@ function RelatedProductCard({ product, index }) {
             onMouseEnter={() => setHov(true)}
             onMouseLeave={() => setHov(false)}
             style={{
-                background: "rgba(255,255,255,0.5)",
-                borderRadius: 14,
-                border: "1px solid #ede9e4",
+                background: dark ? "rgba(30,20,60,0.6)" : "rgba(255,255,255,0.5)",
+borderRadius: 14,
+border: dark ? "1px solid rgba(139,92,246,0.2)" : "1px solid #ede9e4",
                 padding: "16px",
                 cursor: "pointer",
                 transition: "box-shadow 0.2s, transform 0.2s",
@@ -273,7 +275,7 @@ function RelatedProductCard({ product, index }) {
             }}
         >
             <div style={{
-                background: "rgba(255,255,255,0.35)",
+background: dark ? "rgba(20,12,45,0.6)" : "rgba(255,255,255,0.35)",
                 borderRadius: 10,
                 height: 100,
                 marginBottom: 12,
@@ -317,16 +319,16 @@ function RelatedProductCard({ product, index }) {
                     }} />
                 ))}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a2e", marginBottom: 2, fontFamily: "'Georgia', serif" }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: dark ? "#f0eaff" : "#1a1a2e", marginBottom: 2, fontFamily: "'Georgia', serif" }}>
                 {product.name}
             </div>
-            <div style={{ fontSize: 11, color: "#9b93b8", marginBottom: 5 }}>{product.category}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a2e" }}>{product.price}</div>
+            <div style={{ fontSize: 11, color: dark ? "#a89bc8" : "#9b93b8", marginBottom: 5 }}>{product.category}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: dark ? "#f0eaff" : "#1a1a2e" }}>{product.price}</div>
         </motion.div>
     );
 }
 
-function ProductDetails({ productDetails }) {
+function ProductDetails({ productDetails, dark }) {
     const router = useRouter();
     const { id, name, price, category, colors } = productDetails;
 
@@ -350,22 +352,22 @@ function ProductDetails({ productDetails }) {
             {/* Left: description */}
             <div style={{ flex: 1.4 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 16 }}>
-                    <h2 style={{ fontSize: 26, fontWeight: 700, color: "#1a1a2e", fontFamily: "'Georgia', serif" }}>
-                        {name || "Original Living Sofa"}
+                    <h2 style={{ fontSize: 26, fontWeight: 700, color: dark ? "#f0eaff" : "#eeeef6", fontFamily: "'Georgia', serif" }}>
+  {name || "Original Living Sofa"}
                     </h2>
-                    <span style={{ fontSize: 18, fontWeight: 600, color: "#1a1a2e", fontFamily: "'Georgia', serif" }}>
+                    <span style={{ fontSize: 18, fontWeight: 600, color: dark ? "#f0eaff" : "#7676bd", fontFamily: "'Georgia', serif" }}>
                         {price || "Rs.150,000"}
                     </span>
                 </div>
 
-                <p style={{ fontSize: 14, lineHeight: 1.75, color: "#4a4a5e", marginBottom: 22, maxWidth: 480 }}>
+                <p style={{ fontSize: 14, lineHeight: 1.75, color: dark ? "#a89bc8" : "#7f7fa0", marginBottom: 22, maxWidth: 480 }}>
                     Customize this {category || 'item'} to perfectly match your space. Change materials, dimensions, and configure it directly in our 3D Editor.
                 </p>
 
                 <button
                     onClick={handleEditIn3D}
                     style={{
-                        background: "#1a1a2e",
+background: dark ? "linear-gradient(135deg,#8b5cf6,#6d28d9)" : "#1a1a2e",
                         color: "#fff",
                         border: "none",
                         borderRadius: 8,
@@ -392,7 +394,7 @@ function ProductDetails({ productDetails }) {
                 </button>
 
                 <div style={{ marginBottom: 8 }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a2e", marginBottom: 10 }}>Key Specifications</p>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: dark ? "#f0eaff" : "#9c9cb3", marginBottom: 10 }}>Key Specifications</p>
                     <ul style={{ listStyle: "disc", paddingLeft: 18, margin: 0 }}>
                         {[
                             "Seating Capacity: 3-seater.",
@@ -401,7 +403,7 @@ function ProductDetails({ productDetails }) {
                             "Upholstery: Premium woven fabric — Beige",
                             "Legs: Metal with matte black finish",
                         ].map((spec, i) => (
-                            <li key={i} style={{ fontSize: 14, color: "#4a4a5e", marginBottom: 5, lineHeight: 1.6 }}>
+                            <li key={i} style={{ fontSize: 14, color: dark ? "#ada5c0" : "#8a8a94", marginBottom: 5, lineHeight: 1.6 }}>
                                 {spec}
                             </li>
                         ))}
@@ -413,8 +415,8 @@ function ProductDetails({ productDetails }) {
             <div style={{ flex: 1, display: "flex", gap: 14, flexDirection: "column" }}>
                 <div style={{ display: "flex", gap: 14 }}>
                     {relatedProducts.map((p, i) => (
-                        <RelatedProductCard key={p.id} product={p} index={i} />
-                    ))}
+    <RelatedProductCard key={p.id} product={p} index={i} dark={dark} />
+))}
                 </div>
             </div>
         </motion.div>
@@ -465,19 +467,20 @@ function MaterialsContent() {
 }
 
 export default function MaterialsPage() {
-    return (
-        <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "linear-gradient(135deg,#f0eaff 0%,#e8f4ff 50%,#f0e8ff 100%)" }}>
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
-                * { box-sizing: border-box; }
-                ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(196,176,240,0.5);border-radius:3px}
-            `}</style>
-            <GlassSidebar />
-            <div style={{ flex: 1, overflowY: "auto" }}>
-                <Suspense fallback={<div style={{ padding: "40px", textAlign: "center" }}>Loading...</div>}>
-                    <MaterialsContent />
-                </Suspense>
-            </div>
-        </div>
-    );
+  const { dark } = useTheme();
+  return (
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: dark ? "linear-gradient(135deg,#0f0a1a 0%,#0a1020 50%,#120a1a 100%)" : "linear-gradient(135deg,#f0eaff 0%,#e8f4ff 50%,#f0e8ff 100%)" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(196,176,240,0.5);border-radius:3px}
+      `}</style>
+      <GlassSidebar />
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        <Suspense fallback={<div style={{ padding: "40px", textAlign: "center" }}>Loading...</div>}>
+          <MaterialsContent dark={dark} />
+        </Suspense>
+      </div>
+    </div>
+  );
 }
