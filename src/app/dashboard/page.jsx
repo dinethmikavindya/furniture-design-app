@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import GlassSidebar from "@/components/GlassSidebar";
 import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from "@/context/ThemeContext";
 
 function GlassFilter() {
   return (
@@ -49,10 +50,10 @@ function GlassEdge({ hov, radius, filterState, glowColor }) {
 }
 
 const PROJECT_COLORS = [
-  { preview: "linear-gradient(145deg,#ede0ff,#d4c5f9,#c4b5fd)", glow: "rgba(167,139,250,0.45)", blob1: "#c4b5fd", blob2: "#99f6e4" },
-  { preview: "linear-gradient(145deg,#fff3e0,#fed7aa,#fca5a5)", glow: "rgba(251,146,60,0.4)", blob1: "#fcd34d", blob2: "#fca5a5" },
-  { preview: "linear-gradient(145deg,#e0f2fe,#bae6fd,#c4b5fd)", glow: "rgba(99,102,241,0.4)", blob1: "#93c5fd", blob2: "#d8b4fe" },
-  { preview: "linear-gradient(145deg,#d1fae5,#6ee7b7,#a7f3d0)", glow: "rgba(52,211,153,0.4)", blob1: "#6ee7b7", blob2: "#60a5fa" },
+  { preview: "linear-gradient(145deg,#ede0ff,#d4c5f9,#c4b5fd)", previewDark: "linear-gradient(145deg,#2d1b69,#1e1040,#3b1f7a)", glow: "rgba(167,139,250,0.45)", blob1: "#c4b5fd", blob2: "#99f6e4" },
+  { preview: "linear-gradient(145deg,#fff3e0,#fed7aa,#fca5a5)", previewDark: "linear-gradient(145deg,#78340f,#92400e,#7f1d1d)", glow: "rgba(251,146,60,0.4)", blob1: "#fcd34d", blob2: "#fca5a5" },
+  { preview: "linear-gradient(145deg,#e0f2fe,#bae6fd,#c4b5fd)", previewDark: "linear-gradient(145deg,#0c4a6e,#1e3a5f,#2e1065)", glow: "rgba(99,102,241,0.4)", blob1: "#93c5fd", blob2: "#d8b4fe" },
+  { preview: "linear-gradient(145deg,#d1fae5,#6ee7b7,#a7f3d0)", previewDark: "linear-gradient(145deg,#064e3b,#065f46,#065f46)", glow: "rgba(52,211,153,0.4)", blob1: "#6ee7b7", blob2: "#60a5fa" },
 ];
 
 function timeAgo(dateStr) {
@@ -66,14 +67,14 @@ function timeAgo(dateStr) {
   return "Just now";
 }
 
-function ProjectCard({ project, index, delay, onClick }) {
+function ProjectCard({ project, index, delay, onClick, dark }) {
   const { ref, rotateX, rotateY, hov, filterState, events, springScale } = useLiquidGlass(12);
   const colors = PROJECT_COLORS[index % PROJECT_COLORS.length];
   return (
     <motion.div ref={ref} {...events} onClick={onClick} initial={{ y: 30, opacity: 0, scale: 0.93 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ delay: delay / 1000, duration: 0.55, type: "spring", stiffness: 120, damping: 16 }}
       style={{ flex: 1, minWidth: 0, borderRadius: 26, overflow: "hidden", cursor: "pointer", position: "relative", rotateX, rotateY, scale: springScale, transformStyle: "preserve-3d", transformPerspective: 900, background: "rgba(255,255,255,0.22)", backdropFilter: "blur(32px) saturate(200%)", boxShadow: hov ? `0 28px 70px ${colors.glow}` : `0 10px 36px rgba(120,80,220,0.06)`, transition: "box-shadow 0.35s" }}>
       <GlassEdge hov={hov} radius={26} filterState={filterState} glowColor={colors.glow} />
-      <div style={{ background: colors.preview, height: 148, position: "relative", overflow: "hidden" }}>
+<div style={{ background: dark ? colors.previewDark : colors.preview, height: 148, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, filter: "url(#gooey)" }}>
           <motion.div animate={{ x: hov ? [0,14,0] : 0, y: hov ? [0,-12,0] : 0 }} transition={{ duration: 2.2, repeat: hov ? Infinity : 0, ease: "easeInOut" }} style={{ position: "absolute", top: 20, left: 18, width: 90, height: 62, background: colors.blob1, borderRadius: 14, opacity: 0.82 }} />
           <motion.div animate={{ x: hov ? [0,-10,0] : 0, y: hov ? [0,14,0] : 0 }} transition={{ duration: 2.6, repeat: hov ? Infinity : 0, ease: "easeInOut", delay: 0.35 }} style={{ position: "absolute", top: 44, left: 68, width: 62, height: 52, background: colors.blob2, borderRadius: "50%", opacity: 0.62 }} />
@@ -83,8 +84,8 @@ function ProjectCard({ project, index, delay, onClick }) {
       <div style={{ padding: "15px 18px 18px", position: "relative", zIndex: 7 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1e1040", marginBottom: 4 }}>{project.name}</div>
-            <div style={{ fontSize: 11, color: "#a99cc0", fontWeight: 500 }}>{timeAgo(project.updated_at)}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: dark ? "#f0eaff" : "#1e1040", marginBottom: 4 }}>{project.name}</div>
+            <div style={{ fontSize: 11, color: dark ? "#6b5b95" : "#a99cc0", fontWeight: 500 }}>{timeAgo(project.updated_at)}</div>
           </div>
           <motion.div animate={{ opacity: hov ? 1 : 0, x: hov ? 0 : -6 }} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(139,92,246,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#8b5cf6" }}>→</motion.div>
         </div>
@@ -94,11 +95,12 @@ function ProjectCard({ project, index, delay, onClick }) {
 }
 
 const TEMPLATE_BG = ["linear-gradient(145deg,#ede9fe,#c4b5fd)","linear-gradient(145deg,#d1fae5,#6ee7b7)","linear-gradient(145deg,#fef9c3,#fcd34d)","linear-gradient(145deg,#e0f2fe,#93c5fd)","linear-gradient(145deg,#fce7f3,#f9a8d4)","linear-gradient(145deg,#f3e8ff,#d8b4fe)"];
+const TEMPLATE_BG_DARK = ["linear-gradient(145deg,#2d1b69,#1e1040)","linear-gradient(145deg,#064e3b,#065f46)","linear-gradient(145deg,#78340f,#92400e)","linear-gradient(145deg,#0c4a6e,#1e3a5f)","linear-gradient(145deg,#831843,#9d174d)","linear-gradient(145deg,#2d1b69,#1e1040)"];
 const TEMPLATE_GLOW = ["rgba(167,139,250,0.5)","rgba(52,211,153,0.45)","rgba(251,191,36,0.45)","rgba(99,179,237,0.45)","rgba(236,72,153,0.4)","rgba(167,139,250,0.4)"];
 
-function TemplateCard({ template, index, delay, onUse }) {
+function TemplateCard({ template, index, delay, onUse, dark }) {
   const { ref, rotateX, rotateY, hov, filterState, events, springScale } = useLiquidGlass(10);
-  const bg = TEMPLATE_BG[index % TEMPLATE_BG.length];
+  const bg = dark ? TEMPLATE_BG_DARK[index % TEMPLATE_BG_DARK.length] : TEMPLATE_BG[index % TEMPLATE_BG.length];
   const glow = TEMPLATE_GLOW[index % TEMPLATE_GLOW.length];
   return (
     <motion.div ref={ref} {...events} onClick={() => onUse(template)} initial={{ y: 24, opacity: 0, scale: 0.94 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ delay: delay / 1000, duration: 0.5, type: "spring", stiffness: 120, damping: 16 }}
@@ -109,7 +111,7 @@ function TemplateCard({ template, index, delay, onUse }) {
         <motion.div animate={{ opacity: hov ? 1 : 0, y: hov ? 0 : 6 }} style={{ position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)", background: "rgba(255,255,255,0.65)", backdropFilter: "blur(16px)", padding: "4px 14px", borderRadius: 50, fontSize: 10, fontWeight: 700, color: "#4c1d95", whiteSpace: "nowrap" }}>Use template →</motion.div>
       </div>
       <div style={{ padding: "13px 16px 15px", position: "relative", zIndex: 7 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#1e1040" }}>{template.name}</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: dark ? "#f0eaff" : "#1e1040" }}>{template.name}</div>
         {template.category && <div style={{ fontSize: 11, color: "#a99cc0", marginTop: 3 }}>{template.category}</div>}
       </div>
     </motion.div>
@@ -122,7 +124,7 @@ const TIPS = [
   { title: "Space Planning", desc: "Leave at least 90cm between furniture pieces for comfortable movement.", glow: "rgba(251,191,36,0.35)", col: "#fef9c3", accent: "#f59e0b" },
 ];
 
-function TipCard({ tip, delay }) {
+function TipCard({ tip, delay, dark }) {
   const { ref, rotateX, rotateY, hov, filterState, events, springScale } = useLiquidGlass(8);
   return (
     <motion.div ref={ref} {...events} initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: delay / 1000, duration: 0.5, type: "spring", stiffness: 120, damping: 16 }}
@@ -132,29 +134,29 @@ function TipCard({ tip, delay }) {
         <div style={{ width: 16, height: 16, borderRadius: "50%", background: tip.accent, opacity: 0.7 }} />
       </div>
       <div style={{ position: "relative", zIndex: 7, paddingTop: 2 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#1e1040", marginBottom: 5 }}>{tip.title}</div>
-        <div style={{ fontSize: 11.5, color: "#a99cc0", lineHeight: 1.6 }}>{tip.desc}</div>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: dark ? "#f0eaff" : "#1e1040", marginBottom: 5 }}>{tip.title}</div>
+        <div style={{ fontSize: 11.5, color: dark ? "#6b5b95" : "#a99cc0", lineHeight: 1.6 }}>{tip.desc}</div>
       </div>
     </motion.div>
   );
 }
 
-function GlassButton({ children, variant = "secondary", onClick }) {
+function GlassButton({ children, variant = "secondary", onClick, dark }) {
   const [hov, setHov] = useState(false);
   const isPrimary = variant === "primary";
   return (
     <motion.button onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} onClick={onClick} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.94 }}
-      style={{ padding: isPrimary ? "11px 28px" : "11px 22px", borderRadius: 50, border: "none", fontFamily: "'Afacad',sans-serif", fontSize: 13.5, fontWeight: 700, cursor: "pointer", color: isPrimary ? "#fff" : "#4c1d95", background: isPrimary ? (hov ? "linear-gradient(135deg,#9d6fff,#7c3aed)" : "linear-gradient(135deg,#8b5cf6,#6d28d9)") : (hov ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.35)"), backdropFilter: "blur(32px)", boxShadow: isPrimary ? "0 8px 28px rgba(109,40,217,0.38)" : "0 4px 16px rgba(120,80,220,0.07), 0 0 0 1px rgba(255,255,255,0.35)", display: "flex", alignItems: "center", gap: 8 }}
+      style={{ padding: isPrimary ? "11px 28px" : "11px 22px", borderRadius: 50, border: "none", fontFamily: "'Afacad',sans-serif", fontSize: 13.5, fontWeight: 700, cursor: "pointer", color: isPrimary ? "#fff" : dark ? "#a78bfa" : "#4c1d95", background: isPrimary ? (hov ? "linear-gradient(135deg,#9d6fff,#7c3aed)" : "linear-gradient(135deg,#8b5cf6,#6d28d9)") : (hov ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.35)"), backdropFilter: "blur(32px)", boxShadow: isPrimary ? "0 8px 28px rgba(109,40,217,0.38)" : "0 4px 16px rgba(120,80,220,0.07), 0 0 0 1px rgba(255,255,255,0.35)", display: "flex", alignItems: "center", gap: 8 }}
     >{children}</motion.button>
   );
 }
 
-function SectionHeader({ title, action }) {
+function SectionHeader({ title, action, dark }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: "linear-gradient(135deg,#8b5cf6,#60a5fa)", boxShadow: "0 0 8px rgba(139,92,246,0.5)" }} />
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: "#1e1040" }}>{title}</h2>
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: dark ? "#f0eaff" : "#1e1040" }}>{title}</h2>
       </div>
       {action}
     </div>
@@ -280,6 +282,7 @@ export default function HomeScreen() {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const firstName = user?.name ? user.name.split(" ")[0] : "there";
+const { dark } = useTheme();
 
   useEffect(() => {
     Promise.all([
@@ -306,7 +309,7 @@ export default function HomeScreen() {
   `;
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", fontFamily: "'Afacad','Helvetica Neue',sans-serif", background: "linear-gradient(135deg,#f0eaff 0%,#e8f4ff 50%,#f0e8ff 100%)" }}>
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", fontFamily: "'Afacad','Helvetica Neue',sans-serif", background: dark ? "linear-gradient(135deg,#0f0a1a 0%,#0a1020 50%,#120a1a 100%)" : "linear-gradient(135deg,#f0eaff 0%,#e8f4ff 50%,#f0e8ff 100%)" }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <GlassFilter />
       <GlassSidebar />
@@ -317,19 +320,19 @@ export default function HomeScreen() {
         <motion.div initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.5, type: "spring" }}
           style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 34, padding: "22px 8px" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 50, marginBottom: 12, background: "rgba(255,255,255,0.35)", border: "1px solid rgba(255,255,255,0.55)", fontSize: 11, fontWeight: 600, color: "#9b93b8" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 50, marginBottom: 12, background: "rgba(255,255,255,0.35)", border: "1px solid rgba(255,255,255,0.55)", fontSize: 11, fontWeight: 600, color: dark ? "#a78bfa" : "#9b93b8" }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#8b5cf6", display: "inline-block" }} />
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </div>
-            <h1 style={{ fontSize: 34, fontWeight: 700, color: "#1e1040", lineHeight: 1.18, marginBottom: 8, letterSpacing: "-0.5px" }}>
+            <h1 style={{ fontSize: 34, fontWeight: 700, color: dark ? "#f0eaff" : "#1e1040", lineHeight: 1.18, marginBottom: 8, letterSpacing: "-0.5px" }}>
               Welcome back,{" "}
               <span style={{ background: "linear-gradient(90deg,#8b5cf6,#ec4899,#60a5fa,#8b5cf6)", backgroundSize: "300% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "shimmer 3s linear infinite" }}>{firstName}!</span>
             </h1>
-            <p style={{ color: "#b0a4cc", fontSize: 13.5, fontWeight: 500 }}>Ready to design your dream space today?</p>
+            <p style={{ color: dark ? "#7c6fa0" : "#b0a4cc", fontSize: 13.5, fontWeight: 500 }}>Ready to design your dream space today?</p>
           </div>
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-            <GlassButton variant="secondary" onClick={() => router.push("/projects")}>Browse Projects</GlassButton>
-            <GlassButton variant="primary" onClick={() => setShowModal(true)}><span style={{ fontSize: 18 }}>+</span> New Space</GlassButton>
+            <GlassButton variant="secondary" onClick={() => router.push("/projects")} dark={dark}>Browse Projects</GlassButton>
+            <GlassButton variant="primary" onClick={() => setShowModal(true)} dark={dark}><span style={{ fontSize: 18 }}>+</span> New Space</GlassButton>
           </div>
         </motion.div>
 
@@ -341,16 +344,16 @@ export default function HomeScreen() {
             { label: "Templates Available", value: templates.length || 0, accent: "#10b981" },
             { label: "Last Active", value: "Today", accent: "#f59e0b" },
           ].map((s, i) => (
-            <div key={i} style={{ flex: 1, padding: "16px 20px", borderRadius: 20, background: "rgba(255,255,255,0.3)", backdropFilter: "blur(24px)", border: "1.5px solid rgba(255,255,255,0.6)", boxShadow: "0 4px 16px rgba(120,80,220,0.06)" }}>
+            <div key={i} style={{ flex: 1, padding: "16px 20px", borderRadius: 20,background: dark ? "rgba(30,20,60,0.5)" : "rgba(255,255,255,0.3)", backdropFilter: "blur(24px)", border: dark ? "1.5px solid rgba(139,92,246,0.2)" : "1.5px solid rgba(255,255,255,0.6)", }}>
               <div style={{ fontSize: 24, fontWeight: 700, color: s.accent, letterSpacing: "-0.5px" }}>{s.value}</div>
-              <div style={{ fontSize: 11, color: "#a99cc0", marginTop: 4, fontWeight: 500 }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: dark ? "#6b5b95" : "#a99cc0", marginTop: 4, fontWeight: 500}}>{s.label}</div>
             </div>
           ))}
         </motion.div>
 
         {/* Recent */}
         <section style={{ marginBottom: 30 }}>
-          <SectionHeader title="Recent Spaces" action={<GlassLink onClick={() => router.push("/projects")}>View all →</GlassLink>} />
+          <SectionHeader dark={dark} title="Recent Spaces" action={<GlassLink onClick={() => router.push("/projects")}>View all →</GlassLink>} />
           {loading ? (
             <div style={{ color: "#a99cc0", fontSize: 13, padding: "20px 0" }}>Loading your spaces...</div>
           ) : projects.length === 0 ? (
@@ -360,7 +363,7 @@ export default function HomeScreen() {
             </div>
           ) : (
             <div style={{ display: "flex", gap: 14 }}>
-              {projects.map((p, i) => <ProjectCard key={p.id} project={p} index={i} delay={300 + i * 90} onClick={() => router.push(`/editor/2d?projectId=${p.id}`)} />)}
+              {projects.map((p, i) => <ProjectCard key={p.id} project={p} index={i} delay={300 + i * 90} onClick={() => router.push(`/editor/2d?projectId=${p.id}`)} dark={dark} />)}
             </div>
           )}
         </section>
@@ -368,16 +371,16 @@ export default function HomeScreen() {
         {/* Templates */}
         {templates.length > 0 && (
           <section style={{ marginBottom: 30 }}>
-            <SectionHeader title="Start with a Template" action={<GlassLink onClick={() => router.push("/projects")}>All templates →</GlassLink>} />
+            <SectionHeader dark={dark} title="Start with a Template" action={<GlassLink onClick={() => router.push("/projects")}>All templates →</GlassLink>} />
             <div style={{ display: "flex", gap: 14 }}>
-              {templates.slice(0, 3).map((t, i) => <TemplateCard key={t.id} template={t} index={i} delay={500 + i * 90} onUse={handleUseTemplate} />)}
+              {templates.slice(0, 3).map((t, i) => <TemplateCard key={t.id} template={t} index={i} delay={500 + i * 90} onUse={handleUseTemplate} dark={dark} />)}
             </div>
           </section>
         )}
 
         {/* Tips */}
         <section>
-          <SectionHeader title="Design Tips" />
+          <SectionHeader dark={dark} title="Design Tips" />
           <div style={{ display: "flex", gap: 14 }}>
             {TIPS.map((tip, i) => <TipCard key={tip.title} tip={tip} delay={700 + i * 90} />)}
           </div>

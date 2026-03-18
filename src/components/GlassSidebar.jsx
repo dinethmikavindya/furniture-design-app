@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 
 const NAV = [
   { label: "Home",      path: "/dashboard" },
@@ -17,7 +18,8 @@ export default function GlassSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const router   = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+const { user, logout } = useAuth();
+const { dark } = useTheme();
 
   const isActive = (path) =>
     path === "/dashboard"
@@ -38,8 +40,8 @@ export default function GlassSidebar() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         .msb { font-family: 'Inter', sans-serif; }
         .msb-nav-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; width: 100%; text-align: left; transition: all 0.15s ease; border-radius: 10px; }
-        .msb-nav-btn:hover { background: rgba(109,40,217,0.07); }
-        .msb-nav-btn.active { background: rgba(109,40,217,0.10); }
+.msb-nav-btn:hover { background: rgba(139,92,246,0.10); }
+.msb-nav-btn.active { background: rgba(139,92,246,0.14); }
         .msb-collapse-btn { background: none; border: 1px solid rgba(109,40,217,0.15); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
         .msb-collapse-btn:hover { background: rgba(109,40,217,0.08); }
         .msb-logout { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.15s; color: #94a3b8; }
@@ -55,9 +57,9 @@ export default function GlassSidebar() {
           height: "calc(100vh - 24px)",
           margin: "12px 0 12px 12px",
           borderRadius: 20,
-          background: "#ffffff",
-          borderRight: "1px solid #f1f0ff",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(109,40,217,0.06)",
+          background: dark ? "#13102a" : "#ffffff",
+borderRight: dark ? "1px solid rgba(139,92,246,0.15)" : "1px solid #f1f0ff",
+boxShadow: dark ? "0 1px 3px rgba(0,0,0,0.3), 0 8px 24px rgba(109,40,217,0.15)" : "0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(109,40,217,0.06)",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -66,12 +68,12 @@ export default function GlassSidebar() {
         }}
       >
         {/* Header */}
-        <div style={{ padding: "18px 14px 14px", borderBottom: "1px solid #f5f3ff", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <div style={{ padding: "18px 14px 14px", borderBottom: dark ? "1px solid rgba(139,92,246,0.12)" : "1px solid #f5f3ff", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <AnimatePresence initial={false}>
             {!collapsed && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
                 style={{ overflow: "hidden", whiteSpace: "nowrap" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#0f0a1e", letterSpacing: "-0.4px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: dark ? "#f0eaff" : "#0f0a1e", letterSpacing: "-0.4px"}}>
                   Mauve Studio<span style={{ color: "#8b5cf6" }}>.</span>
                 </div>
               </motion.div>
@@ -102,7 +104,7 @@ export default function GlassSidebar() {
                   padding: collapsed ? "11px 0" : "10px 12px",
                   justifyContent: collapsed ? "center" : "flex-start",
                   gap: 10,
-                  color: active ? "#6d28d9" : "#64748b",
+                  color: active ? "#a78bfa" : dark ? "#94a3b8" : "#64748b",
                   fontWeight: active ? 600 : 400,
                   fontSize: 13.5,
                   position: "relative",
@@ -125,7 +127,7 @@ export default function GlassSidebar() {
         </nav>
 
         {/* Divider */}
-        <div style={{ margin: "0 14px", height: 1, background: "#f5f3ff" }} />
+        <div style={{ margin: "0 14px", height: 1, background: dark ? "rgba(139,92,246,0.12)" : "#f5f3ff" }} />
 
         {/* User — now uses real auth data */}
         <div style={{ padding: "10px 10px 14px" }}>
@@ -143,10 +145,10 @@ export default function GlassSidebar() {
               <>
                 <div style={{ flex: 1, overflow: "hidden" }}>
                   {/* Real user name from auth context */}
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "#0f0a1e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: dark ? "#f0eaff" : "#0f0a1e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {user?.name || user?.email?.split("@")[0] || "User"}
                   </div>
-                  <div style={{ fontSize: 10.5, color: "#94a3b8", fontWeight: 400 }}>Account</div>
+                  <div style={{ fontSize: 10.5, color: dark ? "#94a3b8" : "#64748b", fontWeight: 400 }}>Account</div>
                 </div>
                 <button className="msb-logout" onClick={e => { e.stopPropagation(); handleLogout(); }} style={{ width: 26, height: 26, flexShrink: 0 }} title="Sign out">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

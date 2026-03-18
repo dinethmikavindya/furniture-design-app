@@ -1,4 +1,6 @@
 import { Providers } from './providers';
+import { ThemeProvider } from "@/context/ThemeContext";
+import "./globals.css";
 
 export const metadata = {
   title: 'Mauve Studio',
@@ -27,9 +29,11 @@ export default function RootLayout({
         `}} />
       </head>
       <body>
-        <Providers>
-          {children}
-        </Providers>
+        <ThemeProvider>
+  <Providers>
+    {children}
+  </Providers>
+</ThemeProvider>
       </body>
     </html>
   )
