@@ -227,7 +227,7 @@ export default function ShopPage() {
 
     return (
         <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: dark ? "#0f0a1a" : "#faf8f5", fontFamily: "'Afacad','Helvetica Neue',sans-serif" }}>
-            <style>{`
+            <style suppressHydrationWarning>{`
                 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
                 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
                 * { box-sizing: border-box; }

@@ -332,14 +332,44 @@ function ProductDetails({ productDetails, dark }) {
     const router = useRouter();
     const { id, name, price, category, colors } = productDetails;
 
-    const handleEditIn3D = () => {
-        const query = new URLSearchParams({
-            id: id || "",
-            name: name || "Original Living Sofa",
-            category: category || "Sofas",
-            colors: JSON.stringify(colors || [])
-        }).toString();
-        router.push(`/editor?${query}`);
+    const handleEditIn3D = async () => {
+        console.log("CLICKED! category:", category, "name:", name);
+        // Map category to exact 2D editor furniture types
+        const cat = category?.toLowerCase() || '';
+        let mapped = { type: 'sofa-3', w: 220, h: 85 };
+        if (cat.includes('sofa') || cat.includes('couch')) mapped = { type: 'sofa-3', w: 220, h: 85 };
+        else if (cat.includes('bed')) mapped = { type: 'bed-d', w: 140, h: 200 };
+        else if (cat.includes('chair')) mapped = { type: 'chair-a', w: 80, h: 80 };
+        else if (cat.includes('table') || cat.includes('desk')) mapped = { type: 'table-d', w: 160, h: 90 };
+        else if (cat.includes('storage') || cat.includes('shelf')) mapped = { type: 'table-s', w: 80, h: 80 };
+        try {
+            const res = await fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    name: name || 'New Design',
+                    furnitureItems: [{
+                        type: mapped.type,
+                        label: name || 'Furniture',
+                        x: 50, y: 50,
+                        w: mapped.w,
+                        h: mapped.h,
+                        color: colors?.[0] || '#c4b5fd',
+                        rotation: 0
+                    }],
+                    roomConfig: { width: 5, height: 4, wallColor: '#e8e0f0', floorColor: '#f5f0e8' }
+                }),
+            });
+            const data = await res.json();
+            if (data.project?.id) {
+                router.push(`/editor/2d?projectId=${data.project.id}`);
+            } else {
+                router.push('/editor/2d');
+            }
+        } catch (e) {
+            router.push('/editor/2d');
+        }
     };
 
     return (
@@ -470,7 +500,7 @@ export default function MaterialsPage() {
   const { dark } = useTheme();
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: dark ? "linear-gradient(135deg,#0f0a1a 0%,#0a1020 50%,#120a1a 100%)" : "linear-gradient(135deg,#f0eaff 0%,#e8f4ff 50%,#f0e8ff 100%)" }}>
-      <style>{`
+      <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
         * { box-sizing: border-box; }
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(196,176,240,0.5);border-radius:3px}

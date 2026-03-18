@@ -62,7 +62,7 @@ export async function POST(request) {
 
         const userId = auth.userId;
         const body = await request.json();
-        const { name } = body;
+        const { name, furnitureItems, roomConfig } = body;
 
         if (!name || name.trim() === '') {
             return NextResponse.json(
@@ -97,8 +97,8 @@ export async function POST(request) {
          VALUES ($1, $2, $3)`,
                 [
                     project.id,
-                    JSON.stringify({ width: 450, height: 320, ceilingHeight: 240, wallColor: '#FFFFFF', floorColor: '#F0F0F0' }),
-                    JSON.stringify([])
+                    JSON.stringify(roomConfig || { width: 5, height: 4, wallColor: '#e8e0f0', floorColor: '#f5f0e8' }),
+                    JSON.stringify(furnitureItems || [])
                 ]
             );
 

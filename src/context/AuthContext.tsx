@@ -38,12 +38,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const clearAuth = () => {
+    localStorage.removeItem('authToken');
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+    setToken(null);
+    setUser(null);
+  };
+
   useEffect(() => {
-    // Check for stored token on mount
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
       setToken(storedToken);
-      // Verify token and get user info
       fetchUserInfo(storedToken);
     } else {
       setIsLoading(false);
@@ -52,23 +57,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUserInfo = async (authToken: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
+      const response = await fetch('/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${authToken}` },
+        credentials: 'include',
       });
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
       } else {
-        // Token invalid, remove it
-        localStorage.removeItem("authToken"); document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-        setToken(null);
+        clearAuth();
       }
     } catch (error) {
       console.error('Failed to fetch user info:', error);
-      localStorage.removeItem("authToken"); document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-      setToken(null);
+      clearAuth();
     } finally {
       setIsLoading(false);
     }
@@ -77,94 +78,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Login failed');
       setToken(data.token);
       setUser(data.user);
-      localStorage.setItem('authToken', data.token);
-    } catch (error) {
+      if (data.token) localStorage.setItem('authToken', data.token);
+    } finally {
       setIsLoading(false);
-      throw error;
     }
-    setIsLoading(false);
   };
 
   const signup = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password, name }),
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Signup failed');
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Signup failed');
       setToken(data.token);
       setUser(data.user);
-      localStorage.setItem('authToken', data.token);
-    } catch (error) {
+      if (data.token) localStorage.setItem('authToken', data.token);
+    } finally {
       setIsLoading(false);
-      throw error;
     }
-    setIsLoading(false);
   };
 
   const forgotPassword = async (email: string) => {
-    try {
-      const response = await fetch('http://localhost:3000/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Request failed');
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Request failed');
+    return data;
   };
 
   const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("authToken"); document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+    clearAuth();
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
   };
 
-  const value: AuthContextType = {
-    user,
-    token,
-    login,
-    signup,
-    forgotPassword,
-    logout,
-    isLoading,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, token, login, signup, forgotPassword, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
